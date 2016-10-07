@@ -58,5 +58,25 @@ class Sensor2D:
         self.orientation_ = params["orientation"]
 
     def Sense(self, sources):
-        """ Sense the given sources. """
-        # TODO!
+        """
+        Sense the given sources. Returns the number of sources in the
+        field of view.
+        """
+        num_in_view = 0
+
+        # Check each source, and see if it is in the field of view.
+        for source in sources:
+            if InView(source):
+                num_in_view += 1
+
+        return num_in_view
+
+    def InView(self, source):
+        """ Check if a source is in the field of view. """
+
+        # Get vector to source.
+        dx = source.x_ - self.x_
+        dy = source.x_ - self.x_
+
+        # In view if the angle of this vector in the plane is between
+        # our orientation +/- half the field of view.
