@@ -52,19 +52,45 @@ import numpy as np
 class GridMap2D:
     def __init__(self, nrows, ncols, k):
         """
-        Constructor. Takes in dimensions and number of sources k, and
+        Constructor. Takes in dimensions and number of sources k
         and generates a uniform prior.
         """
-        self.belief_ = np.ones((nrows, ncols), dtype=np.float) / k
+        self.belief_ = np.ones((nrows, ncols), dtype=np.float) * k / (nrows*ncols)
+        self.k_ = k
 
-    def Update(self, sensor_params, sensor_reading):
+    def Update(self, sensor):
         """
-        Update belief about the world, given that the specified sensor
-        reading was received by a sensor with the specified parameters.
-        """
-        # TODO!
+        Update belief about the world, given a sensor (with associated
+        paramters, including position and orientation).
 
-    def Simulate(self, sensor_params, niters):
+        For all voxels in range, create a rate update which is uniform
+        and sums to the measurement value, then average at each point.
+        """
+        measurement = sensor.Sense()
+        if measurement > self.k_:
+            print "Measured too many sources. Did not update."
+            return False
+
+        # Identify voxels that are in range.
+        update = np.copy(self.belief_)
+        in_view_mask = np.zeros((self.belief_.shape), dtype=np.bool)
+        in_view_count = 0
+        for ii in range(self.belief_.shape[0]):
+            for jj in range(self.belief_.shape[1]):
+                if sensor.InView(ii, jj):
+                    in_view_mask[ii, jj] = True
+                    in_view_count += 1
+
+        # Set update array.
+        update[in_view_mask == True] = float(measurement) / in_view_count
+        update[in_view_mask == False] = (float(self.k_ - measurement) /
+                                         (update.shape[0]*update.shape[1] - in_view_count))
+
+        # Perform update.
+        self.belief_ = 0.5 * self.belief_ + 0.5 * update
+        return True
+
+    def Simulate(self, sensor, niters):
         """
         Return expected map entropy after receiving a measurement from
         the specified location/orientation. Expectation is based on
@@ -73,5 +99,37 @@ class GridMap2D:
         # TODO!
 
     def Entropy(self):
-        """ Compute the entropy of the map. """
-        # TODO!
+        """
+        Compute the entropy of the map. Since we model each voxel as a
+        Poisson variable, independent of all others, we use the infinite
+        series (https://en.wikipedia.org/wiki/Poisson_distribution) for
+        the entropy of a Poisson variable with rate \lambda at each voxel
+        and sum across all voxels.
+        """
+        total_entropy = 0
+        for ii in range(self.belief_.shape[0]):
+            for jj in range(self.belief_.shape[1]):
+                total_entropy += PoissonEntropy(self.belief_[ii, jj])
+
+        return total_entropy
+
+    def PoissonEntropy(self, rate):
+        """
+        Approximate entropy (in nats) of a Poisson variable with the
+        given rate.
+        """
+        sum_max = min(6, 2*round(rate))
+        entropy = rate * (1.0 - math.log(rate))
+
+        # Add on sum_max extra terms.
+        extra_terms = 0
+        rate_ii = rate
+        fact_ii = 1
+        for ii in range(2, sum_max + 1):
+            rate_ii *= rate
+            fact_ii *= float(ii)
+            extra_terms += rate_ii * math.log(fact_ii) / fact_ii
+
+        # Scale extra terms and add to entropy.
+        entropy += math.exp(-rate) * extra_terms
+        return entropy

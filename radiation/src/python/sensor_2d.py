@@ -43,21 +43,26 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 ###########################################################################
 
 import numpy as np
+import math
 
 class Sensor2D:
-    def __init__(self, params):
+    def __init__(self, params, sources):
         """
         Constructor. Parameters must include:
         1. the index of the grid cell on which the sensor is located
-        2. the unit vector orientation of the sensor
+        2. the angle in the plane of the orientation of the sensor in [-pi, pi]
         3. the angular field of view (in radians)
         """
         self.x_ = params["x"]
         self.y_ = params["y"]
         self.fov_ = params["fov"]
-        self.orientation_ = params["orientation"]
+        self.sources_ = sources
 
-    def Sense(self, sources):
+        # Set unit orientation vector.
+        self.ox_ = math.cos(params["angle"])
+        self.oy_ = math.sin(params["angle"])
+
+    def Sense(self):
         """
         Sense the given sources. Returns the number of sources in the
         field of view.
@@ -65,7 +70,7 @@ class Sensor2D:
         num_in_view = 0
 
         # Check each source, and see if it is in the field of view.
-        for source in sources:
+        for source in self.sources_:
             if InView(source):
                 num_in_view += 1
 
@@ -78,5 +83,22 @@ class Sensor2D:
         dx = source.x_ - self.x_
         dy = source.x_ - self.x_
 
+        # Normalize.
+        norm = np.sqrt(dx*dx + dy*dy)
+        dx /= norm
+        dy /= norm
+
         # In view if the angle of this vector in the plane is between
         # our orientation +/- half the field of view.
+        dot = dx*self.ox_ + dy*self.oy_
+        if (dot <= 0):
+            # Behind the sensor.
+            return False
+
+        angle = math.acos(dot)
+        if (angle < 0.5 * fov_):
+            # In view.
+            return True
+
+        # Not in view.
+        return False
