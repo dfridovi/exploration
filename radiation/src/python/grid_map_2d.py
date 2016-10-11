@@ -64,7 +64,8 @@ class GridMap2D:
         paramters, including position and orientation).
 
         For all voxels in range, create a rate update which is uniform
-        and sums to the measurement value, then average at each point.
+        and sums to the measurement value, then compute a weighted average
+        at each point, trusting lower values more than higher ones.
         """
         measurement = sensor.Sense()
         if measurement > self.k_:
@@ -87,7 +88,10 @@ class GridMap2D:
                                          (update.shape[0]*update.shape[1] - in_view_count))
 
         # Perform update.
-        self.belief_ = 0.5 * self.belief_ + 0.5 * update
+        update_weights_top = np.multiply(self.belief_, self.belief_)
+        update_weights_bottom = np.multiply(update, update) + update_weights_top
+        update_weights = np.divide(update_weights_top, update_weights_bottom)
+        self.belief_ = (1.0 - update_weights) * self.belief_ + np.multiply(update_weights, update)
         return True
 
     def Simulate(self, sensor, niters):
@@ -96,7 +100,21 @@ class GridMap2D:
         the specified location/orientation. Expectation is based on
         Monte Carlo simulation using the specified number of iterations.
         """
-        # TODO!
+        entropy_total = 0
+
+        # Save the current belief state.
+        current_belief = np.copy(self.belief_)
+
+        # Iterate the specified number of times, accumulating total entropy.
+        for ii in range(niters):
+            assert Update(sensor)
+            entropy_total += Entropy()
+
+            # Reset belief state.
+            self.belief_ = np.copy(current_belief)
+
+        # Divide out by number of iterations.
+        return entropy_total / float(niters)
 
     def Entropy(self):
         """
