@@ -83,16 +83,48 @@ class GridMap2D:
                     in_view_count += 1
 
         # Set update array.
-        update[in_view_mask == True] = float(measurement) / in_view_count
-        update[in_view_mask == False] = (float(self.k_ - measurement) /
-                                         (update.shape[0]*update.shape[1] - in_view_count))
+        update[in_view_mask] = float(measurement) / in_view_count
+        update[!in_view_mask] = (float(self.k_ - measurement) /
+                            (update.shape[0]*update.shape[1] - in_view_count))
 
         # Perform update.
         update_weights_top = np.multiply(self.belief_, self.belief_)
         update_weights_bottom = np.multiply(update, update) + update_weights_top
         update_weights = np.divide(update_weights_top, update_weights_bottom)
-        self.belief_ = (1.0 - update_weights) * self.belief_ + np.multiply(update_weights, update)
+        self.belief_ = ((1.0 - update_weights) * self.belief_ +
+                        np.multiply(update_weights, update))
         return True
+
+    def Simulate(self, sensor, trajectory, niters):
+        """
+        Return expected map entropy after taking scans at each GridPose2D
+        in the trajectory.
+
+        Expectation is based on Monte Carlo simulation using the specified
+        number of iterations.
+        """
+        entropy_total = 0
+
+        # Save the current belief state.
+        current_belief = np.copy(self.belief_)
+
+        # Monte Carlo simulation.
+        for ii in range(niters):
+            for pose in trajectory:
+                # Set sensor pose.
+                sensor.ResetPose(pose)
+
+                # Simulate sensor measurement.
+                assert Update(sensor)
+
+            # Once all poses have been simulated, compute entropy.
+            entropy_total += Entropy()
+
+            # Reset belief state.
+            self.belief_ = np.copy(current_belief)
+
+        # Divide out by number of iterations.
+        return entropy_total / float(niters)
 
     def Simulate(self, sensor, niters):
         """

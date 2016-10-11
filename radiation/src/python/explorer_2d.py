@@ -42,19 +42,23 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 #
 ###########################################################################
 
+from grid_pose_2d import GridPose2D
 from grid_map_2d import GridMap2D
 from source_2d import Source2D
+from sensor_2d import Sensor2D
 
 import numpy as np
 
 class Explorer2D:
-    def __init__(self, nrows, ncols, k):
+    def __init__(self, nrows, ncols, k, angular_step_, sensor_params):
         """
-        Constructor. Takes in dimensions and number of sources.
-        Sets up a new GridMap2D to keep track of belief over time.
-        Generates random sources.
+        Constructor. Takes in dimensions, number of sources, resolution,
+        and sensor parameters.
         """
+        self.angular_step_ = angular_step
+        self.sensor_params_ = sensor_params
         self.map_ = GridMap2D(nrows, ncols, k)
+        self.pose_ = GridPose2D(nrows, ncols, 0.5 * nrows, 0.5 * ncols, 0.0)
         self.sources_ = []
 
         for ii in range(k):
@@ -62,9 +66,55 @@ class Explorer2D:
             y = np.random.uniform(0.0, float(ncols))
             self.sources_.append(Source2D(x, y))
 
-    def PlanAhead(self, nsteps, N, M):
+    def PlanAhead(self, nsteps, ntrajectories, niters):
         """
-        Simulate N random nsteps trajectories, each using M iterations.
-        Return the best one.
+        Simulate a bunch of random trajectories and return the best one.
+        """
+        best_trajectory = []
+        best_entropy = float("inf")
+
+        for ii in range(ntrajectories):
+            current_pose = GridPose2D(self.pose_)
+            trajectory = []
+
+            # Choose a random trajectory.
+            while len(trajectory) < nsteps:
+                delta_x = np.random.random_integers(-1, 1)
+                delta_y = np.random.random_integers(-1, 1)
+                delta_angle = (self.angular_step_ *
+                               float(np.random.random_integers(-1, 1)))
+
+                if current_pose.MoveBy(delta_x, delta_y, delta_angle):
+                    trajectory.append(current_pose)
+
+            # Compute entropy.
+            sensor = Sensor2D(self.sensor_params_, self.sources_)
+            entropy = self.map_.Simulate(sensor, trajectory, niters)
+
+            # Compare to best.
+            if entropy < best_entropy:
+                best_trajectory = trajectory
+                best_entropy = entropy
+
+        # Return best.
+        return best_trajectory
+
+    def TakeStep(self, trajectory):
+        """ Move one step along this trajectory. """
+
+        # Update pose.
+        self.pose_ = trajectory[0]
+
+        # Take scan, and update map.
+        sensor = Sensor2D(self.sensor_params_, self.pose_)
+        self.map_.Update(sensor)
+
+        # Return entropy.
+        return self.map_.Entropy()
+
+    def Visualize(self):
+        """
+        Display a visualization of the current belief state,
+        the true locations of the sources, the pose, and the field of view.
         """
         # TODO!

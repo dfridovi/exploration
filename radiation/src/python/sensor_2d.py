@@ -45,6 +45,8 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 import numpy as np
 import math
 
+from grid_pose_2d import GridPose2D
+
 class Sensor2D:
     def __init__(self, params, sources):
         """
@@ -61,6 +63,13 @@ class Sensor2D:
         # Set unit orientation vector.
         self.ox_ = math.cos(params["angle"])
         self.oy_ = math.sin(params["angle"])
+
+    def ResetPose(self, pose):
+        """ Reset position and orientation of this sensor. """
+        self.x_ = float(pose.x_)
+        self.y_ = float(pose.y_)
+        self.ox_ = math.cos(pose.angle_)
+        self.oy_ = math.sin(pose.angle_)
 
     def Sense(self):
         """
