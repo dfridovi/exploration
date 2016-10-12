@@ -52,13 +52,10 @@ class GridPose2D:
         self.y_ = int(y)
         self.angle_ = angle
 
-    def __init__(self, pose):
+    @classmethod
+    def Copy(self, pose):
         """ Initialize from an existing pose. """
-        self.nrows_ = pose.nrows_
-        self.ncols_ = pose.ncols_
-        self.x_ = pose.x_
-        self.y_ = pose.y_
-        self.angle_ = pose.angle_
+        return GridPose2D(pose.nrows_, pose.ncols_, pose.x_, pose.y_, pose.angle_)
 
     def MoveBy(self, delta_x, delta_y, delta_angle):
         """ Move this pose by the specified delta in each dimension. """

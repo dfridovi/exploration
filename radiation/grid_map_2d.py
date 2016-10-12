@@ -49,6 +49,7 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 
 import numpy as np
 from numpy import linalg as LA
+import math
 
 class GridMap2D:
     def __init__(self, nrows, ncols, k):
@@ -105,7 +106,7 @@ class GridMap2D:
                         np.multiply(update_weights, update))
         return True
 
-    def Simulate(self, sensor, trajectory, niters):
+    def SimulateTrajectory(self, sensor, trajectory, niters):
         """
         Return expected map entropy after taking scans at each GridPose2D
         in the trajectory.
@@ -125,10 +126,10 @@ class GridMap2D:
                 sensor.ResetPose(pose)
 
                 # Simulate sensor measurement.
-                assert Update(sensor)
+                assert self.Update(sensor)
 
             # Once all poses have been simulated, compute entropy.
-            entropy_total += Entropy()
+            entropy_total += self.Entropy()
 
             # Reset belief state.
             self.belief_ = np.copy(current_belief)
@@ -136,7 +137,7 @@ class GridMap2D:
         # Divide out by number of iterations.
         return entropy_total / float(niters)
 
-    def Simulate(self, sensor, niters):
+    def SimulatePose(self, sensor, niters):
         """
         Return expected map entropy after receiving a measurement from
         the specified location/orientation. Expectation is based on
@@ -149,8 +150,8 @@ class GridMap2D:
 
         # Iterate the specified number of times, accumulating total entropy.
         for ii in range(niters):
-            assert Update(sensor)
-            entropy_total += Entropy()
+            assert self.Update(sensor)
+            entropy_total += self.Entropy()
 
             # Reset belief state.
             self.belief_ = np.copy(current_belief)
@@ -169,7 +170,7 @@ class GridMap2D:
         total_entropy = 0
         for ii in range(self.belief_.shape[0]):
             for jj in range(self.belief_.shape[1]):
-                total_entropy += PoissonEntropy(self.belief_[ii, jj])
+                total_entropy += self.PoissonEntropy(self.belief_[ii, jj])
 
         return total_entropy
 
@@ -178,7 +179,10 @@ class GridMap2D:
         Approximate entropy (in nats) of a Poisson variable with the
         given rate.
         """
-        sum_max = min(6, 2*round(rate))
+        if rate < 1e-8:
+            return 0.0
+
+        sum_max = min(6, 2*int(round(rate)))
         entropy = rate * (1.0 - math.log(rate))
 
         # Add on sum_max extra terms.

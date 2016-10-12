@@ -54,7 +54,7 @@ class Sensor2D:
         Constructor. Parameters must include:
         1. the index of the grid cell on which the sensor is located
         2. the angle in the plane of the orientation of the sensor in [-pi, pi]
-        3. the angular field of view (in radians)
+        3. the angular field of view (in radians).
         """
         self.x_ = params["x"]
         self.y_ = params["y"]

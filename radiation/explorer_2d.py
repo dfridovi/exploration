@@ -74,7 +74,7 @@ class Explorer2D:
         best_entropy = float("inf")
 
         for ii in range(ntrajectories):
-            current_pose = GridPose2D(self.pose_)
+            current_pose = GridPose2D.Copy(self.pose_)
             trajectory = []
 
             # Choose a random trajectory.
