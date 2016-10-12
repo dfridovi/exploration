@@ -46,6 +46,7 @@ import numpy as np
 import math
 
 from grid_pose_2d import GridPose2D
+from source_2d import Source2D
 
 class Sensor2D:
     def __init__(self, params, sources):
@@ -80,34 +81,59 @@ class Sensor2D:
 
         # Check each source, and see if it is in the field of view.
         for source in self.sources_:
-            if InView(source):
+            if self.SourceInView(source):
                 num_in_view += 1
 
         return num_in_view
 
-    def InView(self, source):
+    def SourceInView(self, source):
         """ Check if a source is in the field of view. """
 
         # Get vector to source.
         dx = source.x_ - self.x_
-        dy = source.x_ - self.x_
+        dy = source.y_ - self.y_
 
         # Normalize.
         norm = np.sqrt(dx*dx + dy*dy)
+        if norm < 1e-8:
+            # On top of this source.
+            return True
+
         dx /= norm
         dy /= norm
 
         # In view if the angle of this vector in the plane is between
         # our orientation +/- half the field of view.
         dot = dx*self.ox_ + dy*self.oy_
-        if (dot <= 0):
-            # Behind the sensor.
-            return False
-
         angle = math.acos(dot)
-        if (angle < 0.5 * fov_):
+        if (angle < 0.5 * self.fov_):
             # In view.
             return True
 
         # Not in view.
+        return False
+
+    def VoxelInView(self, ii, jj):
+        """ Check if the voxel with the given indices is in view. """
+
+        # Check if the lower left corner is in view.
+        lower_left = Source2D(ii, jj)
+        if self.SourceInView(lower_left):
+            return True
+
+        # Check if the lower right corner is in view.
+        lower_right = Source2D(ii + 1, jj)
+        if self.SourceInView(lower_right):
+            return True
+
+        # Check if the upper left corner is in view.
+        upper_left = Source2D(ii, jj + 1)
+        if self.SourceInView(upper_left):
+            return True
+
+        # Check if the lower right corner is in view.
+        upper_right = Source2D(ii + 1, jj + 1)
+        if self.SourceInView(upper_right):
+            return True
+
         return False

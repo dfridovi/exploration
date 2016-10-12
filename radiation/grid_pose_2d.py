@@ -67,8 +67,8 @@ class GridPose2D:
         new_angle = self.angle_ + delta_angle
 
         # Catch going out of bounds.
-        if not ((new_x >= 0) && (new_x < self.nrows_) &&
-                (new_y >= 0) && (new_y < self.ncols_)):
+        if not ((new_x >= 0) and (new_x < self.nrows_) and
+                (new_y >= 0) and (new_y < self.ncols_)):
             return False
 
         # Not going out of bounds, so update coordinates.

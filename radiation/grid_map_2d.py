@@ -48,6 +48,7 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 ###########################################################################
 
 import numpy as np
+from numpy import linalg as LA
 
 class GridMap2D:
     def __init__(self, nrows, ncols, k):
@@ -78,19 +79,28 @@ class GridMap2D:
         in_view_count = 0
         for ii in range(self.belief_.shape[0]):
             for jj in range(self.belief_.shape[1]):
-                if sensor.InView(ii, jj):
+                if sensor.VoxelInView(ii, jj):
                     in_view_mask[ii, jj] = True
                     in_view_count += 1
 
         # Set update array.
-        update[in_view_mask] = float(measurement) / in_view_count
-        update[!in_view_mask] = (float(self.k_ - measurement) /
-                            (update.shape[0]*update.shape[1] - in_view_count))
+        update[np.where(in_view_mask)] = float(measurement) / in_view_count
+
+        # Catch situation where we might divide by zero.
+        if in_view_count < update.shape[0] * update.shape[1]:
+            update[np.where(np.invert(in_view_mask))] = (float(self.k_ - measurement) /
+                                        (update.shape[0]*update.shape[1] - in_view_count))
 
         # Perform update.
         update_weights_top = np.multiply(self.belief_, self.belief_)
         update_weights_bottom = np.multiply(update, update) + update_weights_top
-        update_weights = np.divide(update_weights_top, update_weights_bottom)
+
+        # Only update where belief is sufficiently large.
+        valid_indices = np.where(update_weights_top > 1e-8)
+
+        update_weights = np.zeros(update.shape)
+        update_weights[valid_indices] = np.divide(update_weights_top[valid_indices],
+                                                  update_weights_bottom[valid_indices])
         self.belief_ = ((1.0 - update_weights) * self.belief_ +
                         np.multiply(update_weights, update))
         return True
