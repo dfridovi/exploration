@@ -126,8 +126,8 @@ class Explorer2D:
         ax = fig.add_subplot(111, aspect="equal")
 
         # Plot the belief grid.
-        ax.imshow(self.map_.belief_, cmap=plt.cm.bone)
-#        plt.colorbar()
+        background = ax.imshow(self.map_.belief_, cmap=plt.cm.bone)
+        fig.colorbar(background)
 
         # Overlay the robot position as a circle.
         ax.scatter([self.pose_.y_], [self.pose_.x_],

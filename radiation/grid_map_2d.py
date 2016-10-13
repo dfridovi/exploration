@@ -93,8 +93,8 @@ class GridMap2D:
                                         (update.shape[0]*update.shape[1] - in_view_count))
 
         # Perform update.
-        update_weights_top = np.multiply(self.belief_, self.belief_)
-        update_weights_bottom = np.multiply(update, update) + update_weights_top
+        update_weights_top = np.abs(self.belief_)
+        update_weights_bottom = np.abs(update) + update_weights_top
 
         # Only update where belief is sufficiently large.
         valid_indices = np.where(update_weights_top > 1e-8)
