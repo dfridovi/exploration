@@ -106,7 +106,7 @@ class GridMap2D:
                         np.multiply(update_weights, update))
         return True
 
-    def SimulateTrajectory(self, sensor, trajectory, niters):
+    def SimulateTrajectory(self, sensor, trajectory, niters=1):
         """
         Return expected map entropy after taking scans at each GridPose2D
         in the trajectory.
@@ -137,7 +137,7 @@ class GridMap2D:
         # Divide out by number of iterations.
         return entropy_total / float(niters)
 
-    def SimulatePose(self, sensor, niters):
+    def SimulatePose(self, sensor, niters=1):
         """
         Return expected map entropy after receiving a measurement from
         the specified location/orientation. Expectation is based on

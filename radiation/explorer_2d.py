@@ -48,9 +48,10 @@ from source_2d import Source2D
 from sensor_2d import Sensor2D
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Explorer2D:
-    def __init__(self, nrows, ncols, k, angular_step_, sensor_params):
+    def __init__(self, nrows, ncols, k, angular_step, sensor_params):
         """
         Constructor. Takes in dimensions, number of sources, resolution,
         and sensor parameters.
@@ -89,7 +90,7 @@ class Explorer2D:
 
             # Compute entropy.
             sensor = Sensor2D(self.sensor_params_, self.sources_)
-            entropy = self.map_.Simulate(sensor, trajectory, niters)
+            entropy = self.map_.SimulateTrajectory(sensor, trajectory, niters)
 
             # Compare to best.
             if entropy < best_entropy:
@@ -106,7 +107,10 @@ class Explorer2D:
         self.pose_ = trajectory[0]
 
         # Take scan, and update map.
-        sensor = Sensor2D(self.sensor_params_, self.pose_)
+        self.sensor_params_["x"] = self.pose_.x_
+        self.sensor_params_["y"] = self.pose_.y_
+        self.sensor_params_["angle"] = self.pose_.angle_
+        sensor = Sensor2D(self.sensor_params_, self.sources_)
         self.map_.Update(sensor)
 
         # Return entropy.
@@ -117,4 +121,6 @@ class Explorer2D:
         Display a visualization of the current belief state,
         the true locations of the sources, the pose, and the field of view.
         """
-        # TODO!
+        plt.imshow(self.map_.belief_, cmap=plt.cm.bone)
+        plt.colorbar()
+        plt.show()
