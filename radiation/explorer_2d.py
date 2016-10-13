@@ -49,6 +49,7 @@ from sensor_2d import Sensor2D
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 class Explorer2D:
     def __init__(self, nrows, ncols, k, angular_step, sensor_params):
@@ -105,11 +106,11 @@ class Explorer2D:
 
         # Update pose.
         self.pose_ = trajectory[0]
-
-        # Take scan, and update map.
         self.sensor_params_["x"] = self.pose_.x_
         self.sensor_params_["y"] = self.pose_.y_
         self.sensor_params_["angle"] = self.pose_.angle_
+
+        # Take scan, and update map.
         sensor = Sensor2D(self.sensor_params_, self.sources_)
         self.map_.Update(sensor)
 
@@ -121,6 +122,35 @@ class Explorer2D:
         Display a visualization of the current belief state,
         the true locations of the sources, the pose, and the field of view.
         """
-        plt.imshow(self.map_.belief_, cmap=plt.cm.bone)
-        plt.colorbar()
+        fig = plt.figure()
+        ax = fig.add_subplot(111, aspect="equal")
+
+        # Plot the belief grid.
+        ax.imshow(self.map_.belief_, cmap=plt.cm.bone)
+#        plt.colorbar()
+
+        # Overlay the robot position as a circle.
+        ax.scatter([self.pose_.y_], [self.pose_.x_],
+                    s=[np.pi * 15**2], color="blue", alpha=0.75)
+
+        # Overlay the position of all sources.
+        for source in self.sources_:
+            ax.scatter([source.y_], [source.x_],
+                        s=[np.pi * 7.5**2], color="red", alpha=0.75)
+
+        # Overlay the robot's field of view as a colored wedge. Make sure
+        # to reflect over y = x.
+        fov = self.sensor_params_["fov"]
+        lower_bound = 0.5 * np.pi - (self.pose_.angle_ + 0.5 * fov)
+        upper_bound = 0.5 * np.pi - (self.pose_.angle_ - 0.5 * fov)
+
+        wedge = mpatches.Wedge((self.pose_.y_, self.pose_.x_),
+                               0.5 * max(self.map_.belief_.shape[0],
+                                         self.map_.belief_.shape[1]),
+                               180.0 * lower_bound / np.pi,
+                               180.0 * upper_bound / np.pi,
+                               facecolor="blue",
+                               alpha=0.25)
+        ax.add_patch(wedge)
+
         plt.show()
