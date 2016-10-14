@@ -51,6 +51,8 @@ import numpy as np
 from numpy import linalg as LA
 import math
 
+from scipy.optimize import least_squares
+
 class GridMap2D:
     def __init__(self, nrows, ncols, k):
         """
@@ -59,6 +61,11 @@ class GridMap2D:
         """
         self.belief_ = np.ones((nrows, ncols), dtype=np.float) * k / (nrows*ncols)
         self.k_ = k
+
+        # Also, keep track of which voxels have been viewed at each point
+        # in time, and the associated measurement.
+        self.viewed_sets_ = []
+        self.measurements_ = []
 
     def Update(self, sensor):
         """
@@ -74,41 +81,41 @@ class GridMap2D:
             print "Measured too many sources. Did not update."
             return False
 
-        # Identify voxels that are in range.
-        update = np.copy(self.belief_)
-        in_view_mask = np.zeros((self.belief_.shape), dtype=np.bool)
-        in_view_count = 0
+        # Identify voxels that are in range. Store row-major flattened indices.
+        in_view_set = []
         for ii in range(self.belief_.shape[0]):
             for jj in range(self.belief_.shape[1]):
                 if sensor.VoxelInView(ii, jj):
-                    in_view_mask[ii, jj] = True
-                    in_view_count += 1
+                    in_view_set.append(ii*self.belief_.shape[1] + jj)
 
-        if (in_view_count) == 0:
-            assert measurement == 0
-            return True
+        # Set up constrained least squares problem and solve.
+        self.viewed_sets_.append(in_view_set)
+        self.measurements_.append(measurement)
+        self.SolveLeastSquares()
 
-        # Set update array.
-        update[np.where(in_view_mask)] = float(measurement) / in_view_count
-
-        # Catch situation where we might divide by zero.
-        if in_view_count < update.shape[0] * update.shape[1]:
-            update[np.where(np.invert(in_view_mask))] = (float(self.k_ - measurement) /
-                                        (update.shape[0]*update.shape[1] - in_view_count))
-
-        # Perform update.
-        update_weights_top = np.abs(self.belief_)
-        update_weights_bottom = np.abs(update) + update_weights_top
-
-        # Only update where belief is sufficiently large.
-        valid_indices = np.where(update_weights_top > 1e-8)
-
-        update_weights = np.zeros(update.shape)
-        update_weights[valid_indices] = np.divide(update_weights_top[valid_indices],
-                                                  update_weights_bottom[valid_indices])
-        self.belief_ = ((1.0 - update_weights) * self.belief_ +
-                        np.multiply(update_weights, update))
         return True
+
+    def SolveLeastSquares(self):
+        """
+        Solve the following constrained linear least squares problem:
+                 min 0.5 * sum_i ((sum_{j in S_i} p_j) - z_i)^2
+                 s.t. all probabilities sum to the proper number of sources
+                      all probabilities are between 0 and 1
+        where S_i = {j : voxel v_j is in view at time i}.
+
+        This is a linear objective, but the constraints make it slightly
+        annoying to solve in closed form, so for now we solve with non-linear
+        least squares optimization, providing derivatives wherever possible.
+        """
+        belief = self.belief_.flatten()
+
+        # Compute the expected measurement for the given set S of indices.
+        def expected_measurement(p, S):
+            return p[S].sum()
+
+        # Compute the residual (expected measurement minus actual measurement z).
+        def residual(p, S, z):
+            return expected_measurement(p, S) - z
 
     def SimulateTrajectory(self, sensor, trajectory, niters=1):
         """
