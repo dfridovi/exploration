@@ -134,7 +134,7 @@ class GridMap2D:
         result = least_squares(residuals, belief, jac=jacobian, bounds=(0.0, 1.0),
                                args=(self.viewed_lists_, self.measurements_,
                                      self.k_, self.alpha_, J),
-                               xtol=0.01,
+                               xtol=0.001,
                                verbose=0)
         self.belief_ = np.reshape(result.x, self.belief_.shape)
 
