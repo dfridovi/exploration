@@ -58,7 +58,7 @@ def test_exploration():
     kNumSources = 2
 
     # Set up sensor parameters.
-    kAngularStep = 0.5
+    kAngularStep = 0.125 * math.pi
     kFieldOfView = 0.25 * math.pi
     params = {"x" : 0.5 * kNumRows,
               "y" : 0.5 * kNumCols,
@@ -69,19 +69,16 @@ def test_exploration():
     explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
 
     # For the specified number of steps, plan ahead and update.
-    kNumStepsPerTrajectory = 3
-    kNumTrajectories = 5
+    kNumStepsPerTrajectory = 2
+    kNumTrajectories = 100
     kNumIters = 1
     kNumSteps = 5
     entropy = explorer.map_.Entropy()
     for ii in range(kNumSteps):
+        explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
         trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
                                         kNumTrajectories, kNumIters)
-        new_entropy = explorer.TakeStep(trajectory)
+        entropy = explorer.TakeStep(trajectory)
 
-        # Check that entropy has not increased.
-        assert new_entropy <= entropy
-        entropy = new_entropy
 
-        # Visualize.
-        explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
+    explorer.Visualize("Final entropy = %f" % entropy)

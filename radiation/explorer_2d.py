@@ -50,6 +50,7 @@ from sensor_2d import Sensor2D
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+from matplotlib.collections import PatchCollection
 
 class Explorer2D:
     def __init__(self, nrows, ncols, k, angular_step, sensor_params):
@@ -124,32 +125,40 @@ class Explorer2D:
         """
         fig = plt.figure()
         ax = fig.add_subplot(111, aspect="equal")
-
-        # Plot the belief grid.
-        background = ax.imshow(self.map_.belief_, cmap=plt.cm.bone)
         ax.set_xticks(np.arange(0, self.map_.belief_.shape[1], 1))
         ax.set_yticks(np.arange(0, self.map_.belief_.shape[0], 1))
-        fig.colorbar(background)
-        plt.grid()
+
+        # Plot the belief grid, one square at a time.
+        patches = []
+        colors = []
+        for ii in range(self.map_.belief_.shape[0]):
+            for jj in range(self.map_.belief_.shape[1]):
+                patch = mpatches.Rectangle((float(ii), float(jj)), 1.0, 1.0)
+                patches.append(patch)
+                colors.append(self.map_.belief_[ii, jj])
+
+        patch_collection = PatchCollection(patches, cmap=plt.cm.bone, alpha=0.9)
+        patch_collection.set_array(np.array(colors))
+        ax.add_collection(patch_collection)
+        plt.colorbar(patch_collection)
 
         # Overlay the robot position as a circle.
-        ax.scatter([self.pose_.y_ - 0.5], [self.pose_.x_ - 0.5],
+        ax.scatter([self.pose_.x_], [self.pose_.y_],
                     s=[np.pi * 15**2], color="blue", alpha=0.75)
 
         # Overlay the position of all sources.
         for source in self.sources_:
-            ax.scatter([source.y_ - 0.5], [source.x_ - 0.5],
+            ax.scatter([source.x_], [source.y_],
                         s=[np.pi * 7.5**2], color="red", alpha=0.75)
 
-        # Overlay the robot's field of view as a colored wedge. Make sure
-        # to reflect over y = x.
+        # Overlay the robot's field of view as a colored wedge.
         fov = self.sensor_params_["fov"]
-        lower_bound = 0.5 * np.pi - (self.pose_.angle_ + 0.5 * fov)
-        upper_bound = 0.5 * np.pi - (self.pose_.angle_ - 0.5 * fov)
+        upper_bound = self.pose_.angle_ + 0.5 * fov
+        lower_bound = self.pose_.angle_ - 0.5 * fov
 
-        wedge = mpatches.Wedge((self.pose_.y_ - 0.5, self.pose_.x_ - 0.5),
-                               0.75 * max(self.map_.belief_.shape[0],
-                                         self.map_.belief_.shape[1]),
+        wedge = mpatches.Wedge((self.pose_.x_, self.pose_.y_),
+                               1.5 * max(self.map_.belief_.shape[0],
+                                          self.map_.belief_.shape[1]),
                                180.0 * lower_bound / np.pi,
                                180.0 * upper_bound / np.pi,
                                facecolor="blue",
