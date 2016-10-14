@@ -51,19 +51,23 @@ import numpy as np
 from numpy import linalg as LA
 import math
 
+from sets import ImmutableSet
 from scipy.optimize import least_squares
 
 class GridMap2D:
-    def __init__(self, nrows, ncols, k):
+    def __init__(self, nrows, ncols, k, alpha=1.0):
         """
         Constructor. Takes in dimensions and number of sources k
-        and generates a uniform prior.
+        and generates a uniform prior. Alpha is a regularization
+        parameter used in least squares optimization.
         """
         self.belief_ = np.ones((nrows, ncols), dtype=np.float) * k / (nrows*ncols)
         self.k_ = k
+        self.alpha_ = alpha
 
         # Also, keep track of which voxels have been viewed at each point
         # in time, and the associated measurement.
+        self.viewed_lists_ = []
         self.viewed_sets_ = []
         self.measurements_ = []
 
@@ -82,14 +86,15 @@ class GridMap2D:
             return False
 
         # Identify voxels that are in range. Store row-major flattened indices.
-        in_view_set = []
+        in_view_list = []
         for ii in range(self.belief_.shape[0]):
             for jj in range(self.belief_.shape[1]):
                 if sensor.VoxelInView(ii, jj):
-                    in_view_set.append(ii*self.belief_.shape[1] + jj)
+                    in_view_list.append(ii*self.belief_.shape[1] + jj)
 
         # Set up constrained least squares problem and solve.
-        self.viewed_sets_.append(in_view_set)
+        self.viewed_lists_.append(in_view_list)
+        self.viewed_sets_.append(ImmutableSet(in_view_list))
         self.measurements_.append(measurement)
         self.SolveLeastSquares()
 
@@ -99,8 +104,8 @@ class GridMap2D:
         """
         Solve the following constrained linear least squares problem:
                  min 0.5 * sum_i ((sum_{j in S_i} p_j) - z_i)^2
-                 s.t. all probabilities sum to the proper number of sources
-                      all probabilities are between 0 and 1
+                     + 0.5 * alpha * ((sum_j p_j) - k)^2
+                 s.t. all probabilities are between 0 and 1
         where S_i = {j : voxel v_j is in view at time i}.
 
         This is a linear objective, but the constraints make it slightly
@@ -109,13 +114,29 @@ class GridMap2D:
         """
         belief = self.belief_.flatten()
 
-        # Compute the expected measurement for the given set S of indices.
-        def expected_measurement(p, S):
-            return p[S].sum()
+        # Pre-compute the (constant) Jacobian matrix.
+        J = np.empty((len(self.viewed_sets_) + 1, len(belief)), dtype=np.float)
+        J[:-1, :] = map(lambda ii : map(lambda jj : (jj in self.viewed_sets_[ii]),
+                                        range(len(belief))),
+                        range(len(self.viewed_sets_)))
+        J[-1:, :] = math.sqrt(self.alpha_)
 
-        # Compute the residual (expected measurement minus actual measurement z).
-        def residual(p, S, z):
-            return expected_measurement(p, S) - z
+        # Compute the vector of residuals.
+        def residuals(p, viewed_lists, measurements, k, alpha, jac):
+            resids = [(p[S].sum() - z) for (S, z) in zip(viewed_lists, measurements)]
+            resids.append(math.sqrt(alpha) * (p.sum() - k))
+            return np.array(resids)
+
+        # Compute the Jacobian matrix.
+        def jacobian(p, viewed_lists, measurements, k, alpha, jac):
+            return jac
+
+        result = least_squares(residuals, belief, jac=jacobian, bounds=(0.0, 1.0),
+                               args=(self.viewed_lists_, self.measurements_,
+                                     self.k_, self.alpha_, J),
+                               xtol=0.01,
+                               verbose=0)
+        self.belief_ = np.reshape(result.x, self.belief_.shape)
 
     def SimulateTrajectory(self, sensor, trajectory, niters=1):
         """

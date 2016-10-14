@@ -70,7 +70,7 @@ def test_exploration():
 
     # For the specified number of steps, plan ahead and update.
     kNumStepsPerTrajectory = 3
-    kNumTrajectories = 10
+    kNumTrajectories = 5
     kNumIters = 1
     kNumSteps = 5
     entropy = explorer.map_.Entropy()
@@ -84,4 +84,4 @@ def test_exploration():
         entropy = new_entropy
 
         # Visualize.
-        explorer.Visualize()
+        explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))

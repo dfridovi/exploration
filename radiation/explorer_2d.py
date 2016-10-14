@@ -117,7 +117,7 @@ class Explorer2D:
         # Return entropy.
         return self.map_.Entropy()
 
-    def Visualize(self):
+    def Visualize(self, title):
         """
         Display a visualization of the current belief state,
         the true locations of the sources, the pose, and the field of view.
@@ -133,12 +133,12 @@ class Explorer2D:
         plt.grid()
 
         # Overlay the robot position as a circle.
-        ax.scatter([self.pose_.y_ - 0.5], [self.pose_.x_ - 0.5],
+        ax.scatter([self.pose_.y_ - 0.5], [self.pose_.x_ + 0.5],
                     s=[np.pi * 15**2], color="blue", alpha=0.75)
 
         # Overlay the position of all sources.
         for source in self.sources_:
-            ax.scatter([source.y_ - 0.5], [source.x_ - 0.5],
+            ax.scatter([source.y_ - 0.5], [source.x_ + 0.5],
                         s=[np.pi * 7.5**2], color="red", alpha=0.75)
 
         # Overlay the robot's field of view as a colored wedge. Make sure
@@ -147,7 +147,7 @@ class Explorer2D:
         lower_bound = 0.5 * np.pi - (self.pose_.angle_ + 0.5 * fov)
         upper_bound = 0.5 * np.pi - (self.pose_.angle_ - 0.5 * fov)
 
-        wedge = mpatches.Wedge((self.pose_.y_ - 0.5, self.pose_.x_ - 0.5),
+        wedge = mpatches.Wedge((self.pose_.y_ - 0.5, self.pose_.x_ + 0.5),
                                0.75 * max(self.map_.belief_.shape[0],
                                          self.map_.belief_.shape[1]),
                                180.0 * lower_bound / np.pi,
@@ -155,4 +155,5 @@ class Explorer2D:
                                facecolor="blue",
                                alpha=0.5)
         ax.add_patch(wedge)
+        plt.title(title)
         plt.show()
