@@ -107,7 +107,6 @@ class Sensor2D:
         dot = dx*self.ox_ + dy*self.oy_
         angle = math.acos(dot)
         if (angle < 0.5 * self.fov_):
-            # In view.
             return True
 
         # Not in view.

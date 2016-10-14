@@ -63,6 +63,7 @@ class Explorer2D:
         self.map_ = GridMap2D(nrows, ncols, k)
         self.pose_ = GridPose2D(nrows, ncols, 0.5 * nrows, 0.5 * ncols, 0.0)
         self.sources_ = []
+        self.past_poses_ = []
 
         for ii in range(k):
             x = np.random.uniform(0.0, float(nrows))
@@ -106,6 +107,10 @@ class Explorer2D:
 
     def TakeStep(self, trajectory):
         """ Move one step along this trajectory. """
+
+        # Update list of past poses.
+        current_pose = GridPose2D.Copy(self.pose_)
+        self.past_poses_.append(current_pose)
 
         # Update pose.
         self.pose_ = trajectory[0]
@@ -170,5 +175,26 @@ class Explorer2D:
                                facecolor="blue",
                                alpha=0.5)
         ax.add_patch(wedge)
+
+        # Overlay all past poses, with their fields of view.
+        for pose in self.past_poses_:
+            past_upper_bound = pose.angle_ + 0.5 * fov
+            past_lower_bound = pose.angle_ - 0.5 * fov
+
+            past_wedge = mpatches.Wedge((pose.x_, pose.y_),
+                                        1.5 * max(self.map_.belief_.shape[0],
+                                                  self.map_.belief_.shape[1]),
+                                        180.0 * past_lower_bound / np.pi,
+                                        180.0 * past_upper_bound / np.pi,
+                                        facecolor="green",
+                                        alpha=0.25)
+            ax.add_patch(past_wedge)
+
+            ax.scatter([pose.x_], [pose.y_],
+                       s=[np.pi * 15**2], color="green", alpha=0.25)
+
+
         plt.title(title)
+        ax.set_xlim([0.0, self.map_.belief_.shape[0]])
+        ax.set_ylim([0.0, self.map_.belief_.shape[1]])
         plt.show()
