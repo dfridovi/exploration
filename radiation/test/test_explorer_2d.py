@@ -59,7 +59,7 @@ def test_exploration():
 
     # Set up sensor parameters.
     kAngularStep = 0.125 * math.pi
-    kFieldOfView = 0.25 * math.pi
+    kFieldOfView = 0.5 * math.pi
     params = {"x" : 0.5 * kNumRows,
               "y" : 0.5 * kNumCols,
               "fov" : kFieldOfView,
@@ -70,7 +70,7 @@ def test_exploration():
 
     # For the specified number of steps, plan ahead and update.
     kNumStepsPerTrajectory = 2
-    kNumTrajectories = 100
+    kNumTrajectories = 25
     kNumIters = 1
     kNumSteps = 5
     entropy = explorer.map_.Entropy()
@@ -79,6 +79,5 @@ def test_exploration():
         trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
                                         kNumTrajectories, kNumIters)
         entropy = explorer.TakeStep(trajectory)
-
 
     explorer.Visualize("Final entropy = %f" % entropy)

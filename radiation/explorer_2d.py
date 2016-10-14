@@ -77,7 +77,7 @@ class Explorer2D:
         best_entropy = float("inf")
 
         for ii in range(ntrajectories):
-            current_pose = GridPose2D.Copy(self.pose_)
+            current_pose = self.pose_
             trajectory = []
 
             # Choose a random trajectory.
@@ -87,8 +87,10 @@ class Explorer2D:
                 delta_angle = (self.angular_step_ *
                                float(np.random.random_integers(-1, 1)))
 
-                if current_pose.MoveBy(delta_x, delta_y, delta_angle):
-                    trajectory.append(current_pose)
+                next_pose = GridPose2D.Copy(current_pose)
+                current_pose = next_pose
+                if next_pose.MoveBy(delta_x, delta_y, delta_angle):
+                    trajectory.append(next_pose)
 
             # Compute entropy.
             sensor = Sensor2D(self.sensor_params_, self.sources_)
@@ -140,7 +142,11 @@ class Explorer2D:
         patch_collection = PatchCollection(patches, cmap=plt.cm.bone, alpha=0.9)
         patch_collection.set_array(np.array(colors))
         ax.add_collection(patch_collection)
-        plt.colorbar(patch_collection)
+
+        try:
+            plt.colorbar(patch_collection)
+        except Exception, e:
+            pass
 
         # Overlay the robot position as a circle.
         ax.scatter([self.pose_.x_], [self.pose_.y_],

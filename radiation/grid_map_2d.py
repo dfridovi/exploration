@@ -131,11 +131,16 @@ class GridMap2D:
         def jacobian(p, viewed_lists, measurements, k, alpha, jac):
             return jac
 
-        result = least_squares(residuals, belief, jac=jacobian, bounds=(0.0, 1.0),
-                               args=(self.viewed_lists_, self.measurements_,
-                                     self.k_, self.alpha_, J),
-                               xtol=0.001,
-                               verbose=0)
+        try:
+            result = least_squares(residuals, belief, jac=jacobian, bounds=(0.0, 1.0),
+                                   args=(self.viewed_lists_, self.measurements_,
+                                         self.k_, self.alpha_, J),
+                                   xtol=0.001,
+                                   verbose=0)
+        except Exception, e:
+            pass
+
+        # Update belief.
         self.belief_ = np.reshape(result.x, self.belief_.shape)
 
     def SimulateTrajectory(self, sensor, trajectory, niters=1):
