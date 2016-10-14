@@ -55,7 +55,7 @@ def test_exploration():
     # Create a grid map with only a couple sources.
     kNumRows = 10
     kNumCols = 10
-    kNumSources = 5
+    kNumSources = 2
 
     # Set up sensor parameters.
     kAngularStep = 0.5
@@ -70,9 +70,9 @@ def test_exploration():
 
     # For the specified number of steps, plan ahead and update.
     kNumStepsPerTrajectory = 3
-    kNumTrajectories = 100
+    kNumTrajectories = 10
     kNumIters = 1
-    kNumSteps = 3
+    kNumSteps = 5
     entropy = explorer.map_.Entropy()
     for ii in range(kNumSteps):
         trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,

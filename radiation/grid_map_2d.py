@@ -166,17 +166,29 @@ class GridMap2D:
     def Entropy(self):
         """
         Compute the entropy of the map. Since we model each voxel as a
-        Poisson variable, independent of all others, we use the infinite
-        series (https://en.wikipedia.org/wiki/Poisson_distribution) for
-        the entropy of a Poisson variable with rate \lambda at each voxel
-        and sum across all voxels.
+        Bernoulli variable, independent of all others, we compute joint entropy
+        as the sum of binary entropies at each voxels.
         """
         total_entropy = 0
         for ii in range(self.belief_.shape[0]):
             for jj in range(self.belief_.shape[1]):
-                total_entropy += self.PoissonEntropy(self.belief_[ii, jj])
+                total_entropy += self.BernoulliEntropy(self.belief_[ii, jj])
 
         return total_entropy
+
+    def BernoulliEntropy(self, p):
+        """
+        Binary entropy function (in nats) of a Bernoulli variable with
+        parameter p.
+        """
+        assert (p >= 0.0) and (p <= 1.0)
+
+        # For numerical stability, return 0 if p is nearly 0 or 1.
+        if (p < 1e-8) or (p > 1.0 - 1e-8):
+            return 0.0
+
+        # Otherwise, use the definition of entropy.
+        return -p * math.log(p) - (1.0 - p) * math.log(1.0 - p)
 
     def PoissonEntropy(self, rate):
         """

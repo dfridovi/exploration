@@ -127,15 +127,18 @@ class Explorer2D:
 
         # Plot the belief grid.
         background = ax.imshow(self.map_.belief_, cmap=plt.cm.bone)
+        ax.set_xticks(np.arange(0, self.map_.belief_.shape[1], 1))
+        ax.set_yticks(np.arange(0, self.map_.belief_.shape[0], 1))
         fig.colorbar(background)
+        plt.grid()
 
         # Overlay the robot position as a circle.
-        ax.scatter([self.pose_.y_], [self.pose_.x_],
+        ax.scatter([self.pose_.y_ - 0.5], [self.pose_.x_ - 0.5],
                     s=[np.pi * 15**2], color="blue", alpha=0.75)
 
         # Overlay the position of all sources.
         for source in self.sources_:
-            ax.scatter([source.y_], [source.x_],
+            ax.scatter([source.y_ - 0.5], [source.x_ - 0.5],
                         s=[np.pi * 7.5**2], color="red", alpha=0.75)
 
         # Overlay the robot's field of view as a colored wedge. Make sure
@@ -144,13 +147,12 @@ class Explorer2D:
         lower_bound = 0.5 * np.pi - (self.pose_.angle_ + 0.5 * fov)
         upper_bound = 0.5 * np.pi - (self.pose_.angle_ - 0.5 * fov)
 
-        wedge = mpatches.Wedge((self.pose_.y_, self.pose_.x_),
-                               0.5 * max(self.map_.belief_.shape[0],
+        wedge = mpatches.Wedge((self.pose_.y_ - 0.5, self.pose_.x_ - 0.5),
+                               0.75 * max(self.map_.belief_.shape[0],
                                          self.map_.belief_.shape[1]),
                                180.0 * lower_bound / np.pi,
                                180.0 * upper_bound / np.pi,
                                facecolor="blue",
-                               alpha=0.25)
+                               alpha=0.5)
         ax.add_patch(wedge)
-
         plt.show()
