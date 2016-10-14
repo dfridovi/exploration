@@ -84,6 +84,10 @@ class GridMap2D:
                     in_view_mask[ii, jj] = True
                     in_view_count += 1
 
+        if (in_view_count) == 0:
+            assert measurement == 0
+            return True
+
         # Set update array.
         update[np.where(in_view_mask)] = float(measurement) / in_view_count
 

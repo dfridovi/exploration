@@ -42,14 +42,15 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 ###########################################################################
 
 import numpy as np
+import math
 
 class GridPose2D:
     def __init__(self, nrows, ncols, x, y, angle):
         """ Constructor. """
         self.nrows_ = nrows
         self.ncols_ = ncols
-        self.x_ = int(x)
-        self.y_ = int(y)
+        self.x_ = math.floor(x) + 0.5
+        self.y_ = math.floor(y) + 0.5
         self.angle_ = angle
 
     @classmethod
@@ -59,8 +60,8 @@ class GridPose2D:
 
     def MoveBy(self, delta_x, delta_y, delta_angle):
         """ Move this pose by the specified delta in each dimension. """
-        new_x = self.x_ + int(delta_x)
-        new_y = self.y_ + int(delta_y)
+        new_x = self.x_ + delta_x
+        new_y = self.y_ + delta_y
         new_angle = self.angle_ + delta_angle
 
         # Catch going out of bounds.

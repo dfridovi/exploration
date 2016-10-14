@@ -72,7 +72,7 @@ def test_exploration():
     kNumStepsPerTrajectory = 3
     kNumTrajectories = 100
     kNumIters = 1
-    kNumSteps = 10
+    kNumSteps = 3
     entropy = explorer.map_.Entropy()
     for ii in range(kNumSteps):
         trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
