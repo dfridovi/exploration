@@ -51,6 +51,7 @@ import numpy as np
 from numpy import linalg as LA
 import math
 
+import copy
 from sets import ImmutableSet
 from scipy.optimize import least_squares
 
@@ -71,7 +72,7 @@ class GridMap2D:
         self.viewed_sets_ = []
         self.measurements_ = []
 
-    def Update(self, sensor):
+    def Update(self, sensor, solve=True):
         """
         Update belief about the world, given a sensor (with associated
         paramters, including position and orientation).
@@ -96,7 +97,9 @@ class GridMap2D:
         self.viewed_lists_.append(in_view_list)
         self.viewed_sets_.append(ImmutableSet(in_view_list))
         self.measurements_.append(measurement)
-        self.SolveLeastSquares()
+
+        if solve:
+            self.SolveLeastSquares()
 
         return True
 
@@ -137,11 +140,11 @@ class GridMap2D:
                                          self.k_, self.alpha_, J),
                                    xtol=0.001,
                                    verbose=0)
+            self.belief_ = np.reshape(result.x, self.belief_.shape)
+
         except Exception, e:
             pass
 
-        # Update belief.
-        self.belief_ = np.reshape(result.x, self.belief_.shape)
 
     def SimulateTrajectory(self, sensor, trajectory, niters=1):
         """
@@ -153,8 +156,11 @@ class GridMap2D:
         """
         entropy_total = 0
 
-        # Save the current belief state.
+        # Save the current state. This could be speeded up.
         current_belief = np.copy(self.belief_)
+        current_viewed_lists = list(self.viewed_lists_)
+        current_viewed_sets = list(self.viewed_sets_)
+        current_measurements = list(self.measurements_)
 
         # Monte Carlo simulation.
         for ii in range(niters):
@@ -163,13 +169,17 @@ class GridMap2D:
                 sensor.ResetPose(pose)
 
                 # Simulate sensor measurement.
-                assert self.Update(sensor)
+                assert self.Update(sensor, False)
 
             # Once all poses have been simulated, compute entropy.
+            self.SolveLeastSquares()
             entropy_total += self.Entropy()
 
-            # Reset belief state.
+            # Restore state.
             self.belief_ = np.copy(current_belief)
+            self.viewed_lists_ = list(current_viewed_lists)
+            self.viewed_sets_ = list(current_viewed_sets)
+            self.measurements_ = list(current_measurements)
 
         # Divide out by number of iterations.
         return entropy_total / float(niters)

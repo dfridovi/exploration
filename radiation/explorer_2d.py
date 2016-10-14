@@ -198,4 +198,7 @@ class Explorer2D:
         plt.title(title)
         ax.set_xlim([-0.5, self.map_.belief_.shape[0] + 0.5])
         ax.set_ylim([-0.5, self.map_.belief_.shape[1] + 0.5])
+        ax.set_xticks(range(self.map_.belief_.shape[0] + 1))
+        ax.set_yticks(range(self.map_.belief_.shape[1] + 1))
+
         plt.show()
