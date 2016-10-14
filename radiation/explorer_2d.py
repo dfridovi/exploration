@@ -157,11 +157,6 @@ class Explorer2D:
         ax.scatter([self.pose_.x_], [self.pose_.y_],
                     s=[np.pi * 15**2], color="blue", alpha=0.75)
 
-        # Overlay the position of all sources.
-        for source in self.sources_:
-            ax.scatter([source.x_], [source.y_],
-                        s=[np.pi * 7.5**2], color="red", alpha=0.75)
-
         # Overlay the robot's field of view as a colored wedge.
         fov = self.sensor_params_["fov"]
         upper_bound = self.pose_.angle_ + 0.5 * fov
@@ -177,24 +172,30 @@ class Explorer2D:
         ax.add_patch(wedge)
 
         # Overlay all past poses, with their fields of view.
-        for pose in self.past_poses_:
+        for ii, pose in enumerate(self.past_poses_):
             past_upper_bound = pose.angle_ + 0.5 * fov
             past_lower_bound = pose.angle_ - 0.5 * fov
 
+            fade = 0.1 * float(ii + 1) / len(self.past_poses_)
             past_wedge = mpatches.Wedge((pose.x_, pose.y_),
                                         1.5 * max(self.map_.belief_.shape[0],
                                                   self.map_.belief_.shape[1]),
                                         180.0 * past_lower_bound / np.pi,
                                         180.0 * past_upper_bound / np.pi,
                                         facecolor="green",
-                                        alpha=0.25)
+                                        alpha=fade)
             ax.add_patch(past_wedge)
 
             ax.scatter([pose.x_], [pose.y_],
-                       s=[np.pi * 15**2], color="green", alpha=0.25)
+                       s=[np.pi * 15**2], color="green", alpha=fade)
+
+        # Overlay the position of all sources.
+        for source in self.sources_:
+            ax.scatter([source.x_], [source.y_],
+                        s=[np.pi * 7.5**2], color="red", alpha=0.75)
 
 
         plt.title(title)
-        ax.set_xlim([0.0, self.map_.belief_.shape[0]])
-        ax.set_ylim([0.0, self.map_.belief_.shape[1]])
+        ax.set_xlim([-0.5, self.map_.belief_.shape[0] + 0.5])
+        ax.set_ylim([-0.5, self.map_.belief_.shape[1] + 0.5])
         plt.show()

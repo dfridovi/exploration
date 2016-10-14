@@ -70,12 +70,15 @@ def test_exploration():
 
     # For the specified number of steps, plan ahead and update.
     kNumStepsPerTrajectory = 2
-    kNumTrajectories = 25
+    kNumTrajectories = 30
     kNumIters = 1
-    kNumSteps = 5
+    kNumSteps = 20
     entropy = explorer.map_.Entropy()
     for ii in range(kNumSteps):
-        explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
+        if (ii % 5):
+            explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
+
+        # Search and update.
         trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
                                         kNumTrajectories, kNumIters)
         entropy = explorer.TakeStep(trajectory)
