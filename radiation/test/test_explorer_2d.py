@@ -53,13 +53,13 @@ from radiation.explorer_2d import Explorer2D
 """ Test our ability to explore and reduce entropy. """
 def test_exploration():
     # Create a grid map with only a couple sources.
-    kNumRows = 10
-    kNumCols = 10
-    kNumSources = 1
+    kNumRows = 7
+    kNumCols = 7
+    kNumSources = 2
 
     # Set up sensor parameters.
     kAngularStep = 0.25 * math.pi
-    kFieldOfView = 0.4 * math.pi
+    kFieldOfView = 0.2 * math.pi
     params = {"x" : 0.5 * kNumRows,
               "y" : 0.5 * kNumCols,
               "fov" : kFieldOfView,
@@ -69,8 +69,8 @@ def test_exploration():
     explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
 
     # For the specified number of steps, plan ahead and update.
-    kNumStepsPerTrajectory = 4
-    kNumTrajectories = 3
+    kNumStepsPerTrajectory = 3
+    kNumTrajectories = 15
     kNumIters = 1
     kNumSteps = 10
     entropy = explorer.map_.Entropy()
