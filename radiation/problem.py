@@ -51,6 +51,7 @@ from source_2d import Source2D
 from sensor_2d import Sensor2D
 
 import numpy as np
+import math
 
 class Problem:
     def __init__(self, num_rows, num_cols, num_sources,
@@ -63,7 +64,7 @@ class Problem:
         self.sensor_params_ = sensor_params
         self.num_samples_ = int(num_samples)
 
-    def GenerateConditionalDistribution(self, pose):
+    def GenerateConditionals(self, pose):
         """
         Generate conditional distribution matrix [P_{Z|X}] and conditional
         entropy vector [h_{M|Z}] by starting from the specified pose and
@@ -81,30 +82,44 @@ class Problem:
         row where Z = i.
         """
 
+        # Compute the number of possible trajectories, maps, and measurements.
+        kNumTrajectories = 27**self.num_steps_
+        kNumMaps = (self.num_rows_ * self.num_cols_)**self.num_sources_
+        kNumMeasurements = (self.num_sources_ + 1)**self.num_steps_
+
+        # Create empty matrices to store the joint distributions [P_{Z, X}]
+        # and [P_{M, Z}] (from which we can estimate what we need).
+        zx_joint = np.zeros((kNumMeasurements, kNumTrajectories))
+        mz_joint = np.zeros((kNumMaps, kNumMeasurements))
+
         # Generate a ton of sampled data.
-        samples = []
         for ii in range(self.num_samples_):
 
             # Pick a random trajectory from the given pose.
             current_pose = pose
             trajectory = []
+            trajectory_id = 0
 
             while len(trajectory) < self.num_steps_:
                 delta_x = np.random.random_integers(-1, 1)
                 delta_y = np.random.random_integers(-1, 1)
-                delta_angle = (self.angular_step_ *
-                               float(np.random.random_integers(-1, 1)))
+                delta_angle = np.random.random_integers(-1, 1)
 
                 next_pose = GridPose2D.Copy(current_pose)
-                if next_pose.MoveBy(delta_x, delta_y, delta_angle):
+                if next_pose.MoveBy(delta_x, delta_y,
+                                    self.angular_step_ * float(delta_angle)):
                     trajectory.append(next_pose)
                     current_pose = next_pose
+
+                    # Compute the trajectory id.
+                    step_id = (delta_x + 1) + (delta_y + 1)*3 + (delta_angle + 1)*9
+                    trajectory_id += step_id * 27**(len(trajectory) - 1)
 
             # Generate random sources on the grid and compute a corresponding
             # map id number based on which grid cells the sources lie in.
             sources = []
             map_id = 0
-            for ii in range(k):
+            for jj in range(self.num_sources_):
                 x = math.floor(
                     np.random.uniform(0.0, float(self.num_rows_))) + 0.5
                 y = math.floor(
@@ -112,7 +127,7 @@ class Problem:
 
                 sources.append(Source2D(x, y))
                 map_id += ((self.num_cols_ * int(x) + int(y)) *
-                           (self.num_rows_ * self.num_cols_)**ii)
+                           (self.num_rows_ * self.num_cols_)**jj)
 
             # Create a sensor.
             sensor = Sensor2D(self.sensor_params_, sources)
@@ -120,12 +135,28 @@ class Problem:
             # Walk the trajectory and obtain measurements. Compute a measurement
             # id number based on which measurement was obtained at which step.
             measurement_id = 0
-            for ii, step in enumerate(trajectory):
+            for kk, step in enumerate(trajectory):
                 sensor.ResetPose(step)
                 measurement = sensor.Sense()
 
                 # Update measurement id.
-                measurement_id += measurement * self.num_sources_**ii
+                measurement_id += measurement * (self.num_sources_ + 1)**kk
 
             # Record this sample.
-            samples.append((trajectory_id, map_id, measurement_id))
+            zx_joint[measurement_id, trajectory_id] += 1.0
+            mz_joint[map_id, measurement_id] += 1.0
+
+        # Normalize so that all the rows sum to unity.
+        zx_conditional = zx_joint / np.sum(zx_joint, axis=1)[:, None]
+        mz_conditional = mz_joint / np.sum(mz_joint, axis=1)[:, None]
+
+        # Compute [h_{M|Z}], the conditional entropy vector.
+        def entropy(distribution):
+            return sum(map(lambda p : -max(p, 1e-4) * math.log(max(p, 1e-4)),
+                           distribution))
+
+        h_conditional = np.asarray(
+            map(lambda map_id : entropy(mz_conditional[map_id, :]),
+                range(kNumMaps)))
+
+        return (zx_conditional, h_conditional)
