@@ -1,8 +1,9 @@
 # Figures.
 */figures/
 
-# Numpy saved data.
+# Saved data.
 *.npy
+*.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
