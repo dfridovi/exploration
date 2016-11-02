@@ -55,7 +55,7 @@ def test_exploration():
     # Create a grid map with only a couple sources.
     kNumRows = 7
     kNumCols = 7
-    kNumSources = 2
+    kNumSources = 1
 
     # Set up sensor parameters.
     kAngularStep = 0.25 * math.pi
@@ -69,7 +69,7 @@ def test_exploration():
     explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
 
     # For the specified number of steps, plan ahead and update.
-    kNumStepsPerTrajectory = 3
+    kNumStepsPerTrajectory = 1
     kNumTrajectories = 15
     kNumIters = 1
     kNumSteps = 10

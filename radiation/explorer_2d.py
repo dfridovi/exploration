@@ -48,6 +48,7 @@ from source_2d import Source2D
 from sensor_2d import Sensor2D
 
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from matplotlib.collections import PatchCollection
@@ -65,9 +66,10 @@ class Explorer2D:
         self.sources_ = []
         self.past_poses_ = []
 
+        # Generate random sources on the grid.
         for ii in range(k):
-            x = np.random.uniform(0.0, float(nrows))
-            y = np.random.uniform(0.0, float(ncols))
+            x = math.floor(np.random.uniform(0.0, float(nrows))) + 0.5
+            y = math.floor(np.random.uniform(0.0, float(ncols))) + 0.5
             self.sources_.append(Source2D(x, y))
 
     def PlanAhead(self, nsteps, ntrajectories, niters):
@@ -89,9 +91,9 @@ class Explorer2D:
                                float(np.random.random_integers(-1, 1)))
 
                 next_pose = GridPose2D.Copy(current_pose)
-                current_pose = next_pose
                 if next_pose.MoveBy(delta_x, delta_y, delta_angle):
                     trajectory.append(next_pose)
+                    current_pose = next_pose
 
             # Compute entropy.
             sensor = Sensor2D(self.sensor_params_, self.sources_)
