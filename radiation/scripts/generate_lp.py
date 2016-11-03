@@ -48,7 +48,7 @@ import math
 
 # Files to save to.
 pzx_file = "pzx_5x5_1000.csv"
-hmz_file = "hmz_5x5_1000.csv"
+hzm_file = "hmz_5x5_1000.csv"
 
 # Define hyperparameters.
 kNumSamples = 1000
@@ -68,11 +68,11 @@ problem = Problem(kNumRows, kNumCols, kNumSources, kNumSteps,
 
 # Generate conditionals from the specified pose.
 pose = GridPose2D(kNumRows, kNumCols, kNumRows/2, kNumCols/2, 0.0)
-(pzx, hmz) = problem.GenerateConditionals(pose)
+(pzx, hzm) = problem.GenerateConditionals(pose)
 
 print "P_{Z|X} shape: " + str(pzx.shape)
-print "h_{M|Z} shape: " + str(hmz.shape)
+print "h_{M|Z} shape: " + str(hzm.shape)
 
 np.savetxt(pzx_file, pzx, delimiter=",")
-np.savetxt(hmz_file, hmz, delimiter=",")
+np.savetxt(hzm_file, hzm, delimiter=",")
 print "Successfully saved to disk."

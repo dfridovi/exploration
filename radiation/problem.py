@@ -90,7 +90,7 @@ class Problem:
         # Create empty matrices to store the joint distributions [P_{Z, X}]
         # and [P_{M, Z}] (from which we can estimate what we need).
         zx_joint = np.zeros((kNumMeasurements, kNumTrajectories))
-        mz_joint = np.zeros((kNumMaps, kNumMeasurements))
+        zm_joint = np.zeros((kNumMeasurements, kNumMaps))
 
         # Generate a ton of sampled data.
         for ii in range(self.num_samples_):
@@ -144,11 +144,11 @@ class Problem:
 
             # Record this sample.
             zx_joint[measurement_id, trajectory_id] += 1.0
-            mz_joint[map_id, measurement_id] += 1.0
+            zm_joint[measurement_id, map_id] += 1.0
 
         # Normalize so that all the rows sum to unity.
         zx_conditional = zx_joint / np.sum(zx_joint, axis=1)[:, None]
-        mz_conditional = mz_joint / np.sum(mz_joint, axis=1)[:, None]
+        zm_conditional = zm_joint / np.sum(zm_joint, axis=1)[:, None]
 
         # Compute [h_{M|Z}], the conditional entropy vector.
         def entropy(distribution):
@@ -156,7 +156,7 @@ class Problem:
                            distribution))
 
         h_conditional = np.asarray(
-            map(lambda map_id : entropy(mz_conditional[map_id, :]),
-                range(kNumMaps)))
+            map(lambda measurement_id : entropy(zm_conditional[measurement_id, :]),
+                range(kNumMeasurements)))
 
         return (zx_conditional, h_conditional)
