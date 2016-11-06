@@ -47,6 +47,8 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 #
 ###########################################################################
 
+from source_2d import Source2D
+
 import numpy as np
 from numpy import linalg as LA
 import math
@@ -71,6 +73,42 @@ class GridMap2D:
         self.viewed_lists_ = []
         self.viewed_sets_ = []
         self.measurements_ = []
+
+    def GenerateSources(self):
+        """ Generates 'k' sources from the 'belief' prior. """
+        prior = np.copy(self.belief_) / self.belief_.sum()
+
+        # Choose a 'k' random numbers uniformly in [0, 1]. These will be treated
+        # as evaluations of the CDF, and since they are uniform in [0, 1], the
+        # points at which they occur are distributed according to 'prior'.
+        cdf_evals = sorted(np.random.uniform(0.0, 1.0, self.k_))
+
+        # Walk the 'prior' until we get to each 'cdf_eval' and record which voxel
+        # we are in.
+        sources = []
+        current_cdf_index = 0
+
+        cdf = 0.0
+        for ii in range(prior.shape[0]):
+            for jj in range(prior.shape[1]):
+                cdf += prior[ii, jj]
+
+                # Check if we just passed the next 'cdf_eval'.
+                if cdf >= cdf_evals[current_cdf_index]:
+                    # Generate a new source here.
+                    source = Source2D(float(ii) + 0.5, float(jj) + 0.5)
+                    sources.append(source)
+
+                    # Return if we've got enough sources.
+                    if len(sources) == self.k_:
+                        return sources
+
+                    # Increment 'current_cdf_index'.
+                    current_cdf_index += 1
+
+        # Should never get here.
+        assert(False)
+        return []
 
     def Update(self, sensor, solve=True):
         """

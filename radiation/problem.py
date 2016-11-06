@@ -49,13 +49,14 @@ from grid_pose_2d import GridPose2D
 from grid_map_2d import GridMap2D
 from source_2d import Source2D
 from sensor_2d import Sensor2D
+from encoders import *
 
 import numpy as np
 import math
 
 class Problem:
-    def __init__(self, num_rows, num_cols, num_sources,
-                 num_steps, angular_step, sensor_params, num_samples):
+    def __init__(self, num_rows, num_cols, num_sources, num_steps,
+                 angular_step, sensor_params, num_samples, map_prior=None):
         self.num_rows_ = int(num_rows)
         self.num_cols_ = int(num_cols)
         self.num_sources_ = int(num_sources)
@@ -63,6 +64,12 @@ class Problem:
         self.angular_step_ = angular_step
         self.sensor_params_ = sensor_params
         self.num_samples_ = int(num_samples)
+        self.map_prior_ = map_prior
+
+        # If 'map_prior' is not set, then create a new uniform prior.
+        if (self.map_prior_ is None):
+            self.map_prior_ = GridMap2D(self.num_rows_, self.num_cols_,
+                                        self.num_sources_)
 
     def GenerateConditionals(self, pose):
         """
@@ -112,21 +119,17 @@ class Problem:
                     current_pose = next_pose
 
                     # Compute the trajectory id.
-                    step_id = (delta_x + 1) + (delta_y + 1)*3 + (delta_angle + 1)*9
+                    step_id = (delta_x+1) + (delta_y+1)*3 + (delta_angle+1)*9
                     trajectory_id += step_id * 27**(len(trajectory) - 1)
 
-            # Generate random sources on the grid and compute a corresponding
-            # map id number based on which grid cells the sources lie in.
-            sources = []
+            # Generate random sources on the grid according to 'map_prior' and
+            # compute a corresponding map id number based on which grid cells
+            # the sources lie in.
             map_id = 0
-            for jj in range(self.num_sources_):
-                x = math.floor(
-                    np.random.uniform(0.0, float(self.num_rows_))) + 0.5
-                y = math.floor(
-                    np.random.uniform(0.0, float(self.num_cols_))) + 0.5
+            sources = self.map_prior_.GenerateSources()
 
-                sources.append(Source2D(x, y))
-                map_id += ((self.num_cols_ * int(x) + int(y)) *
+            for jj, source in enumerate(sources):
+                map_id += ((self.num_cols_ * int(source.x_) + int(source.y_)) *
                            (self.num_rows_ * self.num_cols_)**jj)
 
             # Create a sensor.
