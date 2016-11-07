@@ -65,14 +65,14 @@ def EncodeTrajectory(delta_xs, delta_ys, delta_as, delta_sequence):
     return trajectory_id
 
 # Decode a trajectory id into a list of GridPose2Ds.
-def DecodeTrajectory(delta_xs, delta_ys, delta_as, trajectory_id, initial_pose):
+def DecodeTrajectory(delta_xs, delta_ys, delta_as, trajectory_id,
+                     initial_pose, num_steps):
     base = len(delta_xs) * len(delta_ys) * len(delta_as)
-    scale = len(delta_xs) * len(delta_ys) * len(delta_as)
     trajectory = []
 
     current_pose = initial_pose
     while trajectory_id > 0:
-        remainder = trajectory_id  % scale
+        remainder = trajectory_id  % base
 
         # Convert remainder to delta tuple (dx, dy, da).
         x_id = remainder % len(delta_xs)
@@ -84,26 +84,55 @@ def DecodeTrajectory(delta_xs, delta_ys, delta_as, trajectory_id, initial_pose):
         dy = delta_ys[y_id]
         da = delta_as[a_id]
 
-        # Append to trajectory.
+        # Append to 'trajectory'.
         next_pose = GridPose2D.Copy(current_pose)
         assert next_pose.MoveBy(dx, dy, da)
         trajectory.append(next_pose)
+
+        # Update 'trajectory_id'.
+        trajectory_id = (trajectory_id - remainder) / base
+
+        # Reset 'current_pose'.
+        current_pose = next_pose
+
+    # If not the right length, that means that the last remainders were 0.
+    # Update 'trajectory' accordingly.
+    while len(trajectory) < num_steps:
+        next_pose = GridPose2D.Copy(current_pose)
+        assert next_pose.MoveBy(delta_xs[0], delta_ys[0], delta_as[0])
+
+        trajectory.append(next_pose)
+        current_pose = next_pose
 
     return trajectory
 
 # Encode a list of measurements in an integer.
 def EncodeMeasurements(max_measurement, measurement_sequence):
+    base = max_measurement + 1
     measurement_id = 0
 
     for ii, measurement in enumerate(measurement_sequence):
-        measurement_id += measurement * max_measurement**ii
+        measurement_id += measurement * base**ii
 
     return measurement_id
 
 # Decode a measurement id into a list of measurements.
-def DecodeMeasurements(max_measurement, measurement_id):
-    # TODO!
-    pass
+def DecodeMeasurements(max_measurement, measurement_id, num_measurements):
+    base = max_measurement + 1
+    measurements = []
+
+    while measurement_id > 0:
+        remainder = measurement_id % base
+        measurements.append(remainder)
+
+        # Update 'measurement_id'.
+        measurement_id = (measurement_id - remainder) / base
+
+    # If not enough measurements, the rest must have been zero.
+    while len(measurements) < num_measurements:
+        measurements.append(0)
+
+    return measurements
 
 # Encode a map (list of sources) as an integer.
 def EncodeMap(num_rows, num_cols, sources):
@@ -117,6 +146,23 @@ def EncodeMap(num_rows, num_cols, sources):
     return map_id
 
 # Decode a map id into a list of sources.
-def DecodeMap(num_rows, num_cols, map_id):
-    # TODO!
-    pass
+def DecodeMap(num_rows, num_cols, map_id, num_sources):
+    base = num_rows * num_cols
+    sources = []
+
+    while map_id > 0:
+        remainder = map_id % base
+
+        # Unpack remainder into (x, y) coordinates of a source.
+        source = Source2D(float(remainder % num_rows) + 0.5,
+                          float(remainder // num_rows) + 0.5)
+        sources.append(source)
+
+        # Update 'map_id'.
+        map_id = (map_id - remainder) / base
+
+    # If not enough sources, the remainders must have been zero.
+    while len(sources) < num_sources:
+        sources.append(Source2D(0.5, 0.5))
+
+    return sources

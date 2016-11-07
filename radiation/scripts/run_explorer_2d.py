@@ -36,7 +36,7 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 
 ###########################################################################
 #
-# Unit tests for Explorer2D.
+# Run Explorer2D.
 #
 ###########################################################################
 
@@ -50,38 +50,37 @@ from radiation.grid_map_2d import GridMap2D
 from radiation.grid_pose_2d import GridPose2D
 from radiation.explorer_2d import Explorer2D
 
-""" Test our ability to explore and reduce entropy. """
-def test_exploration():
-    # Create a grid map with only a couple sources.
-    kNumRows = 7
-    kNumCols = 7
-    kNumSources = 1
 
-    # Set up sensor parameters.
-    kAngularStep = 0.25 * math.pi
-    kFieldOfView = 0.2 * math.pi
-    params = {"x" : 0.5 * kNumRows,
-              "y" : 0.5 * kNumCols,
-              "fov" : kFieldOfView,
-              "angle" : 0.0}
+# Create a grid map with only a couple sources.
+kNumRows = 7
+kNumCols = 7
+kNumSources = 1
 
-    # Create an explorer.
-    explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
+# Set up sensor parameters.
+kAngularStep = 0.25 * math.pi
+kFieldOfView = 0.2 * math.pi
+params = {"x" : 0.5 * kNumRows,
+          "y" : 0.5 * kNumCols,
+          "fov" : kFieldOfView,
+          "angle" : 0.0}
 
-    # For the specified number of steps, plan ahead and update.
-    kNumStepsPerTrajectory = 1
-    kNumTrajectories = 15
-    kNumIters = 1
-    kNumSteps = 10
-    entropy = explorer.map_.Entropy()
-    for ii in range(kNumSteps):
-        # Search and update.
-        trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
-                                        kNumTrajectories, kNumIters)
-        entropy = explorer.TakeStep(trajectory)
+# Create an explorer.
+explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
 
-        # Visualize.
-        if (ii % 1 == 0):
-            explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
+# For the specified number of steps, plan ahead and update.
+kNumStepsPerTrajectory = 1
+kNumTrajectories = 15
+kNumIters = 1
+kNumSteps = 10
+entropy = explorer.map_.Entropy()
+for ii in range(kNumSteps):
+    # Search and update.
+    trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
+                                    kNumTrajectories, kNumIters)
+    entropy = explorer.TakeStep(trajectory)
 
-    explorer.Visualize("Final entropy = %f" % entropy)
+    # Visualize.
+    if (ii % 1 == 0):
+        explorer.Visualize("Step %d: entropy = %f" % (ii, entropy))
+
+explorer.Visualize("Final entropy = %f" % entropy)
