@@ -92,15 +92,14 @@ class ExplorerLP:
         # Generate LP parameters at the current pose.
         (pzx, hzm) = problem.GenerateConditionals(self.pose_)
         pzx = np.asmatrix(pzx)
-        hzm = np.asmatrix(hzm)
+        hzm = np.asmatrix(hzm).T
         num_trajectories = pzx.shape[1]
 
         # Set up LP.
-        result = linprog((pzx.T * hzm.T).ravel(),
+        result = linprog(np.asarray((pzx.T * hzm)).ravel(),
                          A_eq=np.ones((1, num_trajectories)),
                          b_eq=np.ones((1, 1)),
-                         method='simplex',
-                         bounds=(0.0, 1.0))
+                         method='simplex')
 
         if (not result.success):
             print "Could not find a feasible solution to the LP."
@@ -108,9 +107,7 @@ class ExplorerLP:
 
         # Decode solution into trajectory.
         print "Found information-optimal trajectory."
-        print result.x
         trajectory_id = np.argmax(result.x)
-        print "ID of optimal trajectory is " + str(trajectory_id)
 
         delta_xs = [-1, 0, 1]
         delta_ys = [-1, 0, 1]

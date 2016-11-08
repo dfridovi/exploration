@@ -54,8 +54,8 @@ from explorer_lp import ExplorerLP
 kNumRows = 7
 kNumCols = 7
 kNumSources = 1
-kNumSteps = 1
-kNumSamples = 100
+kNumSteps = 2
+kNumSamples = 500
 
 # Set up sensor parameters.
 kAngularStep = 0.25 * math.pi
