@@ -99,9 +99,10 @@ class Problem:
         kNumMaps = (self.num_rows_ * self.num_cols_)**self.num_sources_
         kNumMeasurements = (self.num_sources_ + 1)**self.num_steps_
 
-        # Create empty matrices to store the joint distributions [P_{Z, X}]
-        # and [P_{M, Z}] (from which we can estimate what we need).
-        zx_joint = np.zeros((kNumMeasurements, kNumTrajectories))
+        # Create a dictionary to hold the counts for each trajectory.
+        zx_dict = {}
+
+        # Create empty matrix to store the joint distribution [P_{M, Z}].
         zm_joint = np.zeros((kNumMeasurements, kNumMaps))
 
         # Generate a ton of sampled data.
@@ -141,13 +142,44 @@ class Problem:
                                              delta_sequence)
             measurement_id = EncodeMeasurements(self.num_sources_, measurements)
 
-            # Record this sample.
-            zx_joint[measurement_id, trajectory_id] += 1.0
+            # Record this sample in the 'zm_joint' matrix.
             zm_joint[measurement_id, map_id] += 1.0
 
+            # Record this sample in the 'zx_dict' dictionary.
+            if trajectory_id not in zx_dict:
+                zx_dict[trajectory_id] = np.zeros(kNumMeasurements)
+
+            zx_dict[trajectory_id][measurement_id] += 1.0
+
+
+        # Convert 'zx_dict' to a matrix.
+        zx_joint = np.zeros((kNumMeasurements, len(zx_dict)))
+        trajectory_ids = np.zeros(len(zx_dict), dtype=int)
+        for ii, trajectory_id in enumerate(zx_dict.keys()):
+            zx_joint[:, ii] = zx_dict[trajectory_id]
+            trajectory_ids[ii] = trajectory_id
+
         # Normalize so that all the rows sum to unity.
-        zx_conditional = zx_joint / np.sum(zx_joint, axis=1)[:, None]
-        zm_conditional = zm_joint / np.sum(zm_joint, axis=1)[:, None]
+        zx_conditional = zx_joint.copy()
+        zm_conditional = zm_joint.copy()
+        for ii in range(zx_joint.shape[0]):
+            row_sum = zx_conditional[ii, :].sum()
+            if row_sum < 1e-8:
+                print "Encountered measurement with no support in P_{Z|X}."
+                zx_conditional[ii, :] = 0.0
+            else:
+                zx_conditional[ii, :] /= row_sum
+
+        for ii in range(zm_joint.shape[0]):
+            row_sum = zm_conditional[ii, :].sum()
+            if row_sum < 1e-8:
+                print "Encountered measurement with no support in P_{Z|M}."
+                zm_conditional[ii, :] = 0.0
+            else:
+                zm_conditional[ii, :] /= row_sum
+
+#        zx_conditional = zx_joint / np.sum(zx_joint, axis=1)[:, None]
+#        zm_conditional = zm_joint / np.sum(zm_joint, axis=1)[:, None]
 
         # Compute [h_{M|Z}], the conditional entropy vector.
         def entropy(distribution):
@@ -158,4 +190,4 @@ class Problem:
             map(lambda measurement_id : entropy(zm_conditional[measurement_id, :]),
                 range(kNumMeasurements)))
 
-        return (zx_conditional, h_conditional)
+        return (zx_conditional, h_conditional, trajectory_ids)

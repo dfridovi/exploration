@@ -90,7 +90,7 @@ class ExplorerLP:
                           self.num_samples_, self.map_)
 
         # Generate LP parameters at the current pose.
-        (pzx, hzm) = problem.GenerateConditionals(self.pose_)
+        (pzx, hzm, trajectory_ids) = problem.GenerateConditionals(self.pose_)
         pzx = np.asmatrix(pzx)
         hzm = np.asmatrix(hzm).T
         num_trajectories = pzx.shape[1]
@@ -107,7 +107,7 @@ class ExplorerLP:
 
         # Decode solution into trajectory.
         print "Found information-optimal trajectory."
-        trajectory_id = np.argmax(result.x)
+        trajectory_id = trajectory_ids[np.argmax(result.x)]
 
         delta_xs = [-1, 0, 1]
         delta_ys = [-1, 0, 1]
