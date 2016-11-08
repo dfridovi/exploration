@@ -49,7 +49,7 @@ from grid_pose_2d import GridPose2D
 from grid_map_2d import GridMap2D
 from source_2d import Source2D
 from sensor_2d import Sensor2D
-from encoders import *
+from encoding import *
 
 import numpy as np
 import math
@@ -89,8 +89,13 @@ class Problem:
         row where Z = i.
         """
 
+        # Set the choices for taking steps.
+        delta_xs = [-1, 0, 1]
+        delta_ys = [-1, 0, 1]
+        delta_as = [-self.angular_step_, 0.0, self.angular_step_]
+
         # Compute the number of possible trajectories, maps, and measurements.
-        kNumTrajectories = 27**self.num_steps_
+        kNumTrajectories = (len(delta_xs)*len(delta_ys)*len(delta_as))**self.num_steps_
         kNumMaps = (self.num_rows_ * self.num_cols_)**self.num_sources_
         kNumMeasurements = (self.num_sources_ + 1)**self.num_steps_
 
@@ -101,49 +106,40 @@ class Problem:
 
         # Generate a ton of sampled data.
         for ii in range(self.num_samples_):
-
-            # Pick a random trajectory from the given pose.
-            current_pose = pose
-            trajectory = []
-            trajectory_id = 0
-
-            while len(trajectory) < self.num_steps_:
-                delta_x = np.random.random_integers(-1, 1)
-                delta_y = np.random.random_integers(-1, 1)
-                delta_angle = np.random.random_integers(-1, 1)
-
-                next_pose = GridPose2D.Copy(current_pose)
-                if next_pose.MoveBy(delta_x, delta_y,
-                                    self.angular_step_ * float(delta_angle)):
-                    trajectory.append(next_pose)
-                    current_pose = next_pose
-
-                    # Compute the trajectory id.
-                    step_id = (delta_x+1) + (delta_y+1)*3 + (delta_angle+1)*9
-                    trajectory_id += step_id * 27**(len(trajectory) - 1)
-
             # Generate random sources on the grid according to 'map_prior' and
             # compute a corresponding map id number based on which grid cells
             # the sources lie in.
-            map_id = 0
             sources = self.map_prior_.GenerateSources()
-
-            for jj, source in enumerate(sources):
-                map_id += ((self.num_cols_ * int(source.x_) + int(source.y_)) *
-                           (self.num_rows_ * self.num_cols_)**jj)
+            map_id = EncodeMap(self.num_rows_, self.num_cols_, sources)
 
             # Create a sensor.
             sensor = Sensor2D(self.sensor_params_, sources)
 
-            # Walk the trajectory and obtain measurements. Compute a measurement
-            # id number based on which measurement was obtained at which step.
-            measurement_id = 0
-            for kk, step in enumerate(trajectory):
-                sensor.ResetPose(step)
-                measurement = sensor.Sense()
+            # Pick a random trajectory starting at the given pose. At each step,
+            # get the corresponding measurement.
+            current_pose = pose
+            delta_sequence = []
+            measurements = []
 
-                # Update measurement id.
-                measurement_id += measurement * (self.num_sources_ + 1)**kk
+            while len(delta_sequence) < self.num_steps_:
+                dx = np.random.choice(delta_xs)
+                dy = np.random.choice(delta_ys)
+                da = np.random.choice(delta_as)
+
+                next_pose = GridPose2D.Copy(current_pose)
+                if next_pose.MoveBy(dx, dy, da):
+                    # If a valid move, append to list.
+                    delta_sequence.append((dx, dy, da))
+                    current_pose = next_pose
+
+                    # Get a measurement.
+                    sensor.ResetPose(current_pose)
+                    measurements.append(sensor.Sense())
+
+            # Get trajectory and measurement ids.
+            trajectory_id = EncodeTrajectory(delta_xs, delta_ys, delta_as,
+                                             delta_sequence)
+            measurement_id = EncodeMeasurements(self.num_sources_, measurements)
 
             # Record this sample.
             zx_joint[measurement_id, trajectory_id] += 1.0

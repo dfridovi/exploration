@@ -76,9 +76,9 @@ class ExplorerLP:
         self.past_poses_ = []
 
         # Generate random sources on the grid.
-        for ii in range(k):
-            x = math.floor(np.random.uniform(0.0, float(self.num_rows_))) + 0.5
-            y = math.floor(np.random.uniform(0.0, float(self.num_cols_))) + 0.5
+        for ii in range(self.num_sources_):
+            x = float(np.random.random_integers(0, self.num_rows_-1)) + 0.5
+            y = float(np.random.random_integers(0, self.num_cols_-1)) + 0.5
             self.sources_.append(Source2D(x, y))
 
     def PlanAhead(self):
@@ -96,9 +96,9 @@ class ExplorerLP:
         num_trajectories = pzx.shape[1]
 
         # Set up LP.
-        result = linprog(pzx.T * hzm,
+        result = linprog((pzx.T * hzm.T).ravel(),
                          A_eq=np.ones((1, num_trajectories)),
-                         b_eq=1,
+                         b_eq=np.ones((1, 1)),
                          method='simplex',
                          bounds=(0.0, 1.0))
 
@@ -110,18 +110,15 @@ class ExplorerLP:
         print "Found information-optimal trajectory."
         print result.x
         trajectory_id = np.argmax(result.x)
-        print trajectory_id
+        print "ID of optimal trajectory is " + str(trajectory_id)
 
-        next_multiplier = 27
-        for ii in range(self.num_steps_):
-            remainder = trajectory_id % next_multiplier
+        delta_xs = [-1, 0, 1]
+        delta_ys = [-1, 0, 1]
+        delta_as = [-self.angular_step_, 0.0, self.angular_step_]
+        trajectory = DecodeTrajectory(delta_xs, delta_ys, delta_as,
+                                      trajectory_id, self.pose_, self.num_steps_)
 
-            # Update 'next_multiplier' and 'trajectory_id'.
-            trajectory_id -= remainder * next_multiplier
-            next_multiplier *= 27
-
-
-
+        return trajectory
 
     def TakeStep(self, trajectory):
         """ Move one step along this trajectory. """

@@ -36,7 +36,7 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 
 ###########################################################################
 #
-# Run Explorer2D.
+# Run ExplorerLP.
 #
 ###########################################################################
 
@@ -48,13 +48,14 @@ from sensor_2d import Sensor2D
 from source_2d import Source2D
 from grid_map_2d import GridMap2D
 from grid_pose_2d import GridPose2D
-from explorer_2d import Explorer2D
-
+from explorer_lp import ExplorerLP
 
 # Create a grid map with only a couple sources.
 kNumRows = 7
 kNumCols = 7
 kNumSources = 1
+kNumSteps = 1
+kNumSamples = 100
 
 # Set up sensor parameters.
 kAngularStep = 0.25 * math.pi
@@ -65,18 +66,15 @@ params = {"x" : 0.5 * kNumRows,
           "angle" : 0.0}
 
 # Create an explorer.
-explorer = Explorer2D(kNumRows, kNumCols, kNumSources, kAngularStep, params)
+explorer = ExplorerLP(kNumRows, kNumCols, kNumSources, kNumSteps,
+                      kAngularStep, params, kNumSamples)
 
-# For the specified number of steps, plan ahead and update.
-kNumStepsPerTrajectory = 1
-kNumTrajectories = 15
-kNumIters = 1
-kNumSteps = 10
+# For the specified number of iterations, plan ahead and update.
+kNumIterations = 10
 entropy = explorer.map_.Entropy()
-for ii in range(kNumSteps):
+for ii in range(kNumIterations):
     # Search and update.
-    trajectory = explorer.PlanAhead(kNumStepsPerTrajectory,
-                                    kNumTrajectories, kNumIters)
+    trajectory = explorer.PlanAhead()
     entropy = explorer.TakeStep(trajectory)
 
     # Visualize.
