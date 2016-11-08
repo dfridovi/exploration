@@ -67,9 +67,11 @@ def test_empty_map():
     sensor = Sensor2D(params, [])
 
     # Update a bunch of times, and check that grid has converged to zero.
+    # We may get divide by zero errors since no sources. Ignore them.
     kNumUpdates = 10
     kEpsilon = 1e-4
     for ii in range(kNumUpdates):
+        np.seterr(divide="ignore", invalid="ignore")
         assert grid.Update(sensor)
 
     assert LA.norm(grid.belief_) < kEpsilon
