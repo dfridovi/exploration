@@ -88,8 +88,8 @@ for ii in range(kNumSimulations):
     # Generate a valid trajectory of the given length.
     step_counter = 0
     current_pose = GridPose2D(kNumRows, kNumCols,
-                              np.random.uniform(0.0, kNumRows),
-                              np.random.uniform(0.0, kNumCols),
+                              int(np.random.uniform(0.0, kNumRows)) + 0.5,
+                              int(np.random.uniform(0.0, kNumCols)) + 0.5,
                               np.random.uniform(0.0, 2.0 * math.pi))
     while step_counter < kNumSteps:
         dx = np.random.choice(delta_xs)

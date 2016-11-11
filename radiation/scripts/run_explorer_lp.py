@@ -53,17 +53,17 @@ from explorer_lp import ExplorerLP
 # Create a grid map with only a couple sources.
 kNumRows = 5
 kNumCols = 5
-kNumSources = 2
+kNumSources = 3
 kNumSteps = 3
-kNumSamples = 1000
+kNumSamples = 3000
 
 # Set up sensor parameters.
-kAngularStep = 0.3 * math.pi
-kFieldOfView = 0.45 * math.pi
+kAngularStep = 0.4 * math.pi
+kFieldOfView = 0.3 * math.pi
 params = {"x" : 0.5 * kNumRows,
           "y" : 0.5 * kNumCols,
           "fov" : kFieldOfView,
-          "angle" : 0.0}
+          "angle" : np.random.uniform(0.0, 2.0 * math.pi)}
 
 # Create an explorer.
 explorer = ExplorerLP(kNumRows, kNumCols, kNumSources, kNumSteps,

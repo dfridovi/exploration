@@ -94,7 +94,7 @@ class GridMap2D:
                 cdf += prior[ii, jj]
 
                 # Check if we just passed the next 'cdf_eval'.
-                if cdf >= cdf_evals[current_cdf_index]:
+                while cdf >= cdf_evals[current_cdf_index]:
                     # Generate a new source here.
                     source = Source2D(float(ii) + 0.5, float(jj) + 0.5)
                     sources.append(source)

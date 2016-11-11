@@ -71,7 +71,9 @@ class ExplorerLP:
         # Keep track of map, pose, true sources, and past poses.
         self.map_ = GridMap2D(self.num_rows_, self.num_cols_, self.num_sources_)
         self.pose_ = GridPose2D(self.num_rows_, self.num_cols_,
-                                0.5 * self.num_rows_, 0.5 * self.num_cols_, 0.0)
+                                int(np.random.uniform(0.0, self.num_rows_)) + 0.5,
+                                int(np.random.uniform(0.0, self.num_cols_)) + 0.5,
+                                np.random.uniform(0.0, 2.0 * math.pi))
         self.sources_ = []
         self.past_poses_ = []
 
