@@ -51,15 +51,15 @@ from grid_pose_2d import GridPose2D
 from explorer_lp import ExplorerLP
 
 # Create a grid map with only a couple sources.
-kNumRows = 7
-kNumCols = 7
-kNumSources = 1
+kNumRows = 5
+kNumCols = 5
+kNumSources = 2
 kNumSteps = 3
-kNumSamples = 10000
+kNumSamples = 1000
 
 # Set up sensor parameters.
-kAngularStep = 0.25 * math.pi
-kFieldOfView = 0.2 * math.pi
+kAngularStep = 0.3 * math.pi
+kFieldOfView = 0.45 * math.pi
 params = {"x" : 0.5 * kNumRows,
           "y" : 0.5 * kNumCols,
           "fov" : kFieldOfView,

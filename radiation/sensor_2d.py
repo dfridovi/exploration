@@ -115,24 +115,5 @@ class Sensor2D:
     def VoxelInView(self, ii, jj):
         """ Check if the voxel with the given indices is in view. """
 
-        # Check if the lower left corner is in view.
-        lower_left = Source2D(ii, jj)
-        if self.SourceInView(lower_left):
-            return True
-
-        # Check if the lower right corner is in view.
-        lower_right = Source2D(ii + 1, jj)
-        if self.SourceInView(lower_right):
-            return True
-
-        # Check if the upper left corner is in view.
-        upper_left = Source2D(ii, jj + 1)
-        if self.SourceInView(upper_left):
-            return True
-
-        # Check if the lower right corner is in view.
-        upper_right = Source2D(ii + 1, jj + 1)
-        if self.SourceInView(upper_right):
-            return True
-
-        return False
+        source = Source2D(float(ii) + 0.5, float(jj) + 0.5)
+        return self.SourceInView(source)
