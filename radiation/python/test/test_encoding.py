@@ -43,8 +43,8 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 import numpy as np
 import math
 
-from radiation.source_2d import Source2D
-from radiation.encoding import *
+from source_2d import Source2D
+from encoding import *
 
 """ Test encoding/decoding for sources. """
 def test_map():

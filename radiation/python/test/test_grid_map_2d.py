@@ -44,10 +44,10 @@ import numpy as np
 from numpy import linalg as LA
 import math
 
-from radiation.sensor_2d import Sensor2D
-from radiation.source_2d import Source2D
-from radiation.grid_map_2d import GridMap2D
-from radiation.grid_pose_2d import GridPose2D
+from sensor_2d import Sensor2D
+from source_2d import Source2D
+from grid_map_2d import GridMap2D
+from grid_pose_2d import GridPose2D
 
 """ Test that we can sense an empty map properly with a full FOV sensor. """
 def test_empty_map():

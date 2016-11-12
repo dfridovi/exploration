@@ -53,9 +53,9 @@ from explorer_lp import ExplorerLP
 # Create a grid map with only a couple sources.
 kNumRows = 5
 kNumCols = 5
-kNumSources = 3
+kNumSources = 2
 kNumSteps = 3
-kNumSamples = 3000
+kNumSamples = 10000
 
 # Set up sensor parameters.
 kAngularStep = 0.4 * math.pi

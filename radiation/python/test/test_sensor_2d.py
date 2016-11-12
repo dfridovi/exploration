@@ -43,8 +43,8 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 import numpy as np
 import math
 
-from radiation.sensor_2d import Sensor2D
-from radiation.source_2d import Source2D
+from sensor_2d import Sensor2D
+from source_2d import Source2D
 
 """ Test that we can detect sources properly. """
 def test_detect_sources():
