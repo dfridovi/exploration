@@ -42,6 +42,8 @@
 
 #include "movement_2d.h"
 
+#include <glog/logging.h>
+
 namespace radiation {
 
   Movement2D::~Movement2D() {}
@@ -55,6 +57,12 @@ namespace radiation {
 
     std::uniform_int_distribution<unsigned int> unif_a(0, delta_as_.size() - 1);
     aa_ = unif_a(rng_);
+  }
+  Movement2D::Movement2D(unsigned int x_id, unsigned int y_id, unsigned int a_id)
+    : xx_(x_id), yy_(y_id), aa_(a_id) {
+    CHECK((xx_ >= 0) && (xx_ < delta_xs_.size()));
+    CHECK((yy_ >= 0) && (yy_ < delta_ys_.size()));
+    CHECK((aa_ >= 0) && (aa_ < delta_as_.size()));
   }
 
   // Static setters.

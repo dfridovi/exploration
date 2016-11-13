@@ -72,25 +72,130 @@ namespace radiation {
   }
 
   // Decode a trajectory id into a sequence of poses.
-  bool DecodeTrajectory(unsigned int id, unsigned int num_steps,
+  void DecodeTrajectory(unsigned int id, unsigned int num_steps,
                         const GridPose2D& initial_pose,
                         std::vector<GridPose2D>& trajectory) {
+    trajectory.clear();
+    const unsigned int base =
+      Movement2D::GetNumDeltaXs() * Movement2D::GetNumDeltaYs() *
+      Movement2D::GetNumDeltaAngles();
 
+    GridPose2D current_pose = initial_pose;
+    while (id > 0) {
+      remainder = id % base;
+
+      // Convert remainder to Movement2D.
+      const unsigned int x_id = remainder % Movement2D::GetNumDeltaXs();
+      const unsigned int y_id =
+        (remainder / Movement2D::GetNumDeltaXs()) % Movement2D::GetNumDeltaYs();
+      const unsigned int a_id =
+        remainder / (Movement2D::GetNumDeltaXs() * Movement2D::GetNumDeltaYs());
+
+      const Movement2D step(x_id, y_id, a_id);
+
+      // Append to trajectory.
+      GridPose2D next_pose = current_pose;
+      CHECK(next_pose.MoveBy(step));
+      trajectory.push_back(next_pose);
+
+      // Update 'id'.
+      id /= base;
+
+      // Reset 'current_pose'.
+      current_pose = next_pose;
+    }
+
+    // If the above does not recover enough poses, the last remainders were zero.
+    // Update 'trajectory' accordingly.
+    while (trajectory.size() < num_steps) {
+      GridPose2D next_pose = current_pose;
+      CHECK(next_pose.MoveBy(Movement2D(0, 0, 0)));
+
+      trajectory.push_back(next_pose);
+      current_pose = next_pose;
+    }
+
+    return trajectory;
   }
 
-  // Encode/decode measurements.
+  // Encode a sequence of measurements in an unsigned integer.
   unsigned int EncodeMeasurements(const std::vector<unsigned int>& measurements,
-                                  unsigned int max_measurement);
-  bool DecodeMeasurements(unsigned int id, unsigned int max_measurement,
-                          unsigned int num_measurements,
-                          std::vector<unsigned int>& measurements);
+                                  unsigned int max_measurement) {
+    const unsigned int base = max_measurement + 1;
 
-  // Encode/decode list of sources (map).
+    unsigned int id = 0;
+    unsigned int place_value = 1;
+
+    for (size_t ii = 0; ii < measurements.size(); ii++) {
+      id += measurements[ii] * place_value;
+      place_value *= base;
+    }
+
+    return id;
+  }
+
+  // Decode a measurement id into a list of measurements.
+  void DecodeMeasurements(unsigned int id, unsigned int max_measurement,
+                          unsigned int num_measurements,
+                          std::vector<unsigned int>& measurements) {
+    measurements.clear();
+    const unsigned int base = max_measurement + 1;
+
+    while (id > 0) {
+      const unsigned int remainder = id % base;
+      measurements.push_back(remainder);
+
+      // Update 'id'.
+      id /= base;
+    }
+
+    // If not enough measurements, the rest must have been zero.
+    while (measurements.size() < num_measurements) {
+      measurements.push_back(0);
+    }
+  }
+
+  // Encode a list of sources (map) as an unsigned integer.
   unsigned int EncodeMap(const std::vector<Source2D>& sources,
-                         unsigned int num_rows, unsigned int num_cols);
-  bool DecodeMap(unsigned int id, unsigned int num_rows, unsigned int num_cols,
-                 unsigned int num_sources, std::vector<Source2D>& sources);
+                         unsigned int num_rows, unsigned int num_cols) {
+    const unsigned int base = num_rows * num_cols;
+
+    unsigned int id = 0;
+    unsigned int place_value = 1;
+
+    for (size_t ii = 0; ii < sources.size(); ii++) {
+      const unsigned int source_id =
+        sources[ii].GetIndexX() + sources[ii].GetIndexY() * num_rows;
+
+      id += source_id * place_value;
+      place_value *= base;
+    }
+
+    return id;
+  }
+
+  // Decode a map id into a list of sources.
+  void DecodeMap(unsigned int id, unsigned int num_rows, unsigned int num_cols,
+                 unsigned int num_sources, std::vector<Source2D>& sources) {
+    sources.clear();
+    const unsigned int base = num_rows * num_cols;
+
+    while (id > 0) {
+      const unsigned int remainder = id % base;
+
+      // Unpack remainder into a source.
+      const unsigned int x_id = remainder % num_rows;
+      const unsigned int y_id = remainder / num_rows;
+      sources.push_back(Source2D(x_id, y_id));
+
+      // Update 'id'.
+      id /= base;
+    }
+
+    // If not enough sources, the remainders must have been zero.
+    while (sources.size() < num_sources) {
+      sources.push_back(Source2D(0, 0));
+    }
+  }
 
 } // namespace radiation
-
-#endif

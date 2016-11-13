@@ -52,21 +52,21 @@ namespace radiation {
 
   // Encode/decode trajectories.
   unsigned int EncodeTrajectory(const std::vector<Movement2D>& movements);
-  bool DecodeTrajectory(unsigned int id, unsigned int num_steps,
+  void DecodeTrajectory(unsigned int id, unsigned int num_steps,
                         const GridPose2D& initial_pose,
                         std::vector<GridPose2D>& trajectory);
 
   // Encode/decode measurements.
   unsigned int EncodeMeasurements(const std::vector<unsigned int>& measurements,
                                   unsigned int max_measurement);
-  bool DecodeMeasurements(unsigned int id, unsigned int max_measurement,
+  void DecodeMeasurements(unsigned int id, unsigned int max_measurement,
                           unsigned int num_measurements,
                           std::vector<unsigned int>& measurements);
 
   // Encode/decode list of sources (map).
   unsigned int EncodeMap(const std::vector<Source2D>& sources,
                          unsigned int num_rows, unsigned int num_cols);
-  bool DecodeMap(unsigned int id, unsigned int num_rows, unsigned int num_cols,
+  void DecodeMap(unsigned int id, unsigned int num_rows, unsigned int num_cols,
                  unsigned int num_sources, std::vector<Source2D>& sources);
 
 } // namespace radiation

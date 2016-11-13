@@ -50,9 +50,12 @@ namespace radiation {
 
 class Movement2D {
 public:
-  // Default constructor picks a random perturbation dx, dy, da.
-  Movement2D();
   ~Movement2D();
+
+  // Default constructor picks a random perturbation dx, dy, da.
+  // Alternatively, construct by specifying indices into delta arrays.
+  Movement2D();
+  Movement2D(unsigned int x_id, unsigned int y_id, unsigned int a_id);
 
   // Static setters.
   static void SetDeltaXs(const std::vector<double>& delta_xs);
