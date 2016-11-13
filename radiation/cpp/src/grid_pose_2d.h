@@ -63,7 +63,6 @@ public:
 
   unsigned int GetX() const;
   unsigned int GetY() const;
-  unsigned int GetAngle() const;
 
   // Move by the given amount if it is legal.
   bool MoveBy(const Movement2D& movement);

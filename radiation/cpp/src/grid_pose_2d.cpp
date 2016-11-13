@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2015, The Regents of the University of California (Regents).
  * All rights reserved.
@@ -36,57 +37,54 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a movement on a 2D grid.
+// Defines a pose on the 2D grid.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_MOVEMENT_2D_H
-#define RADIATION_MOVEMENT_2D_H
+#include "grid_pose_2d.h"
 
-#include <vector>
-#include <random>
+#include <math.h>
 
 namespace radiation {
 
-class Movement2D {
-public:
-  // Default constructor picks a random perturbation dx, dy, da.
-  Movement2D();
-  ~Movement2D();
+  GridPose2D::~GridPose2D() {}
+  GridPose2D::GridPose2D(double x, double y, double a)
+    : x_(x), y_(y), a_(a) {}
 
   // Static setters.
-  static void SetDeltaXs(const std::vector<double>& delta_xs);
-  static void SetDeltaYs(const std::vector<double>& delta_ys);
-  static void SetDeltaAngles(const std::vector<double>& delta_as);
+  void GridPose2D::SetNumRows(unsigned int num_rows) { num_rows_ = num_rows; }
+  void GridPose2D::SetNumCols(unsigned int num_cols) { num_cols_ = num_cols; }
 
   // Getters.
-  static unsigned int GetNumDeltaXs() const;
-  static unsigned int GetNumDeltaYs() const;
-  static unsigned int GetNumDeltaAngles() const;
+  double GridPose2D::GetX() const { return x_; }
+  double GridPose2D::GetY() const { return y_; }
+  double GridPose2D::GetAngle() const { return a_; }
 
-  unsigned int GetIndexX() const;
-  unsigned int GetIndexY() const;
-  unsigned int GetIndexAngle() const;
+  unsigned int GridPose2D::GetX() const { return static_cast<unsigned int>(x_); }
+  unsigned int GridPose2D::GetY() const { return static_cast<unsigned int>(y_); }
 
-  double GetDeltaX() const;
-  double GetDeltaY() const;
-  double GetDeltaAngle() const;
+  // Move by the given amount if it is legal.
+  bool GridPose2D::MoveBy(const Movement2D& movement) {
+    double new_x = x_ + movement.GetDeltaX();
+    double new_y = y_ + movement.GetDeltaY();
+    double new_a = a_ + movement.GetDeltaAngle();
 
-private:
-  // Static variables. Sets of dx, dy, da, where actually the real change in
-  // angle will be angular_step_ * delta_as_. Also a random number generator.
-  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
-  static double angular_step_ = 0.5;
+    // Catch going out of bounds.
+    if ((new_x < 0.0) || (new_x > num_rows_) ||
+        (new_y < 0.0) || (new_y > num_cols_))
+      return false;
 
-  static std::random_device rd_;
-  static std::default_random_engine rng_(rd_);
+    // Not going out of bounds, so update coordinates.
+    x_ = new_x;
+    y_ = new_y;
+    a_ = new_a;
 
-  // Non-static variables. Indices in the static delta vectors.
-  unsigned int xx_, yy_, aa_;
-}; // struct Movement2D
+    // Make sure angle is in [0, 2 pi).
+    if (a_ < 0.0)
+      a_ += M_PI + M_PI;
+    else if (a_ > M_PI + M_PI)
+      a_ -= M_PI + M_PI;
+    return true;
+  }
 
 } // namespace radiation
-
-#endif

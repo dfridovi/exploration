@@ -40,53 +40,57 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_MOVEMENT_2D_H
-#define RADIATION_MOVEMENT_2D_H
-
-#include <vector>
-#include <random>
+#include "movement_2d.h"
 
 namespace radiation {
 
-class Movement2D {
-public:
-  // Default constructor picks a random perturbation dx, dy, da.
-  Movement2D();
-  ~Movement2D();
+  Movement2D::~Movement2D() {}
+  Movement2D::Movement2D() {
+    // Choose each index uniformly from the appropriate set.
+    std::uniform_int_distribution<unsigned int> unif_x(0, delta_xs_.size() - 1);
+    xx_ = unif_x(rng_);
+
+    std::uniform_int_distribution<unsigned int> unif_y(0, delta_ys_.size() - 1);
+    yy_ = unif_y(rng_);
+
+    std::uniform_int_distribution<unsigned int> unif_a(0, delta_as_.size() - 1);
+    aa_ = unif_a(rng_);
+  }
 
   // Static setters.
-  static void SetDeltaXs(const std::vector<double>& delta_xs);
-  static void SetDeltaYs(const std::vector<double>& delta_ys);
-  static void SetDeltaAngles(const std::vector<double>& delta_as);
+  void Movement2D::SetDeltaXs(const std::vector<double>& delta_xs) {
+    delta_xs_.clear();
+    for (const auto& dx : delta_xs)
+      delta_xs_.push_back(dx);
+  }
+
+  void Movement2D::SetDeltaYs(const std::vector<double>& delta_ys) {
+    delta_ys_.clear();
+    for (const auto& dy : delta_ys)
+      delta_ys_.push_back(dy);
+  }
+
+  void Movement2D::SetDeltaAngles(const std::vector<double>& delta_as) {
+    delta_as_.clear();
+    for (const auto& da : delta_as)
+      delta_as_.push_back(da);
+  }
 
   // Getters.
-  static unsigned int GetNumDeltaXs() const;
-  static unsigned int GetNumDeltaYs() const;
-  static unsigned int GetNumDeltaAngles() const;
+  unsigned int Movement2D::GetNumDeltaXs() const { return delta_xs_.size(); }
+  unsigned int Movement2D::GetNumDeltaYs() const { return delta_ys_.size(); }
+  unsigned int Movement2D::GetNumDeltaAngles() const {
+    return delta_as_.size();
+  }
 
-  unsigned int GetIndexX() const;
-  unsigned int GetIndexY() const;
-  unsigned int GetIndexAngle() const;
+  unsigned int Movement2D::GetIndexX() const { return xx_; }
+  unsigned int Movement2D::GetIndexY() const { return yy_; }
+  unsigned int Movement2D::GetIndexAngle() const { return aa_; }
 
-  double GetDeltaX() const;
-  double GetDeltaY() const;
-  double GetDeltaAngle() const;
-
-private:
-  // Static variables. Sets of dx, dy, da, where actually the real change in
-  // angle will be angular_step_ * delta_as_. Also a random number generator.
-  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
-  static double angular_step_ = 0.5;
-
-  static std::random_device rd_;
-  static std::default_random_engine rng_(rd_);
-
-  // Non-static variables. Indices in the static delta vectors.
-  unsigned int xx_, yy_, aa_;
-}; // struct Movement2D
+  double Movement2D::GetDeltaX() const { return delta_xs_[xx_]; }
+  double Movement2D::GetDeltaY() const { return delta_ys_[yy_]; }
+  double Movement2D::GetDeltaAngle() const {
+    return angular_step_ * delta_as_[aa_];
+  }
 
 } // namespace radiation
-
-#endif

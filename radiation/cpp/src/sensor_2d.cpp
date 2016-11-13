@@ -36,57 +36,62 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a movement on a 2D grid.
+// Defines a 2D radiation sensor, which can sense sources in its fied of view.
+// Returns a noiseless count of the sources in view.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_MOVEMENT_2D_H
-#define RADIATION_MOVEMENT_2D_H
-
-#include <vector>
-#include <random>
+#include "sensor_2d.h"
 
 namespace radiation {
 
-class Movement2D {
-public:
-  // Default constructor picks a random perturbation dx, dy, da.
-  Movement2D();
-  ~Movement2D();
+  Sensor2D::~Sensor2D() {}
+  Sensor2D::Sensor2D(double x, double y, double a, double fov)
+    : x_(x), y_(y), a_(a), fov_(fov) {}
 
-  // Static setters.
-  static void SetDeltaXs(const std::vector<double>& delta_xs);
-  static void SetDeltaYs(const std::vector<double>& delta_ys);
-  static void SetDeltaAngles(const std::vector<double>& delta_as);
+  // Move to the given location and orientation.
+  void Sensor2D::MoveTo(double x, double y, double a) const {
+    x_ = x;
+    y_ = y;
+    a_ = a;
+  }
 
-  // Getters.
-  static unsigned int GetNumDeltaXs() const;
-  static unsigned int GetNumDeltaYs() const;
-  static unsigned int GetNumDeltaAngles() const;
+  // Sense the specified sources. Count the number in view.
+  unsigned int Sensor2D::Sense(const std::vector<Source2D>& sources) const {
+    unsigned int count = 0;
 
-  unsigned int GetIndexX() const;
-  unsigned int GetIndexY() const;
-  unsigned int GetIndexAngle() const;
+    for (const auto& source : sources) {
+      if SourceInView(source)
+        count++;
+    }
 
-  double GetDeltaX() const;
-  double GetDeltaY() const;
-  double GetDeltaAngle() const;
+    return count;
+  }
 
-private:
-  // Static variables. Sets of dx, dy, da, where actually the real change in
-  // angle will be angular_step_ * delta_as_. Also a random number generator.
-  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
-  static double angular_step_ = 0.5;
+  // Check if a source or voxel is in view.
+  bool Sensor2D::VoxelInView(unsigned int ii, unsigned int jj) const {
+    return SourceInView(Source2D(ii, jj));
+  }
 
-  static std::random_device rd_;
-  static std::default_random_engine rng_(rd_);
+  bool Sensor2D::SourceInView(const Source2D& source) const {
+    // Get unit vector to source.
+    double dx = source.GetX() - x_;
+    double dy = source.GetY() - y_;
+    double norm = sqrt(dx * dx + dy * dy);
 
-  // Non-static variables. Indices in the static delta vectors.
-  unsigned int xx_, yy_, aa_;
-}; // struct Movement2D
+    if (norm < 1e-8)
+      return true;
+
+    dx /= norm;
+    dy /= norm;
+
+    // In view if the angle of this vector int he plane is within half the
+    // field of view of our current angle.
+    double angle_to_source = acos(dx * cos(a_) + dy * sin(a_));
+    if (angle < 0.5 * fov_)
+      return true;
+
+    return false;
+  }
 
 } // namespace radiation
-
-#endif

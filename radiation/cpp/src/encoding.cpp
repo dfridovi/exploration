@@ -36,56 +36,60 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a movement on a 2D grid.
+// Encode and decode measurements, trajectories, and maps (list of sources).
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_MOVEMENT_2D_H
-#define RADIATION_MOVEMENT_2D_H
-
-#include <vector>
-#include <random>
+#include "encoding.h"
 
 namespace radiation {
 
-class Movement2D {
-public:
-  // Default constructor picks a random perturbation dx, dy, da.
-  Movement2D();
-  ~Movement2D();
+  // Encode a sequence of movements as an unsigned integer.
+  unsigned int EncodeTrajectory(const std::vector<Movement2D>& movements) {
+    const unsigned int base =
+      Movement2D::GetNumDeltaXs() * Movement2D::GetNumDeltaYs() *
+      Movement2D::GetNumDeltaAngles();
 
-  // Static setters.
-  static void SetDeltaXs(const std::vector<double>& delta_xs);
-  static void SetDeltaYs(const std::vector<double>& delta_ys);
-  static void SetDeltaAngles(const std::vector<double>& delta_as);
+    unsigned int id = 0;
+    unsigned int place_value = 1;
 
-  // Getters.
-  static unsigned int GetNumDeltaXs() const;
-  static unsigned int GetNumDeltaYs() const;
-  static unsigned int GetNumDeltaAngles() const;
+    for (size_t ii = 0; ii < movements.size(); ii++) {
+      const unsigned int x_id = movements[ii].GetIndexX();
+      const unsigned int y_id = movements[ii].GetIndexY();
+      const unsigned int a_id = movements[ii].GetIndexAngle();
 
-  unsigned int GetIndexX() const;
-  unsigned int GetIndexY() const;
-  unsigned int GetIndexAngle() const;
+      // Compute a unique identifier for this movement.
+      const unsigned int step_id =
+        x_id + y_id * Movement2D::GetNumDeltaXs() +
+        a_id * Movement2D::GetNumDeltaXs() * Movement2D::GetNumDeltaYs();
 
-  double GetDeltaX() const;
-  double GetDeltaY() const;
-  double GetDeltaAngle() const;
+      // Update the overall trajectory id, and the place value.
+      id += step_id * place_value;
+      place_value *= base;
+    }
 
-private:
-  // Static variables. Sets of dx, dy, da, where actually the real change in
-  // angle will be angular_step_ * delta_as_. Also a random number generator.
-  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
-  static double angular_step_ = 0.5;
+    return id;
+  }
 
-  static std::random_device rd_;
-  static std::default_random_engine rng_(rd_);
+  // Decode a trajectory id into a sequence of poses.
+  bool DecodeTrajectory(unsigned int id, unsigned int num_steps,
+                        const GridPose2D& initial_pose,
+                        std::vector<GridPose2D>& trajectory) {
 
-  // Non-static variables. Indices in the static delta vectors.
-  unsigned int xx_, yy_, aa_;
-}; // struct Movement2D
+  }
+
+  // Encode/decode measurements.
+  unsigned int EncodeMeasurements(const std::vector<unsigned int>& measurements,
+                                  unsigned int max_measurement);
+  bool DecodeMeasurements(unsigned int id, unsigned int max_measurement,
+                          unsigned int num_measurements,
+                          std::vector<unsigned int>& measurements);
+
+  // Encode/decode list of sources (map).
+  unsigned int EncodeMap(const std::vector<Source2D>& sources,
+                         unsigned int num_rows, unsigned int num_cols);
+  bool DecodeMap(unsigned int id, unsigned int num_rows, unsigned int num_cols,
+                 unsigned int num_sources, std::vector<Source2D>& sources);
 
 } // namespace radiation
 
