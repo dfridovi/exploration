@@ -71,14 +71,15 @@ class GridMap2D {
                             std::vector<unsigned int>& trajectory_ids) const;
 
   // Take a measurement from the given sensor and update belief accordingly.
-  bool Update(const Sensor2D& sensor, bool solve = true);
+  bool Update(const Sensor2D& sensor,
+              const std::vector<Source2D>& sources, bool solve = true);
 
   // Compute entropy.
   double Entropy() const;
 
  private:
   // Solve least squares problem to update belief state.
-  void SolveLeastSquares();
+  bool SolveLeastSquares();
 
   // Belief state.
   Eigen::VectorXd belief_;
@@ -95,6 +96,10 @@ class GridMap2D {
   // corresponding measurements.
   std::vector<std::vector<std::tuple<unsigned int, unsigned int>>> viewed_;
   std::vector<unsigned int> measurements_;
+
+  // Random number generator.
+  std::random_device rd_;
+  std::default_random_engine rng_;
 }; // class GridMap2D
 
 } // namespace radiation
