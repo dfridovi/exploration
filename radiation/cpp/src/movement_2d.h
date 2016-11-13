@@ -36,66 +36,62 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a 2D grid map.
+// Defines a movement on a 2D grid.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_GRID_MAP_2D_H
-#define RADIATION_GRID_MAP_2D_H
+#ifndef RADIATION_MOVEMENT_2D_H
+#define RADIATION_MOVEMENT_2D_H
 
-#include "source_2d.h"
-#include "sensor_2d.h"
-
-#include <Eigen/Core>
-#include <random>
 #include <vector>
-#include <tuple>
+#include <random>
 
 namespace radiation {
 
-class GridMap2D {
- public:
-  GridMap2D(unsigned int num_rows, unsigned int num_cols,
-            unsigned int num_sources, double regularizer);
-  ~GridMap2D();
+class Movement2D {
+public:
+  // Default constructor picks a random perturbation dx, dy, da.
+  Movement2D() {
+    // Choose each index uniformly from the appropriate set.
+    std::uniform_int_distribution<unsigned int> unif_x(0, delta_xs_.size() - 1);
+    xx_ = unif_x(rng_);
 
-  // Generate random sources according to the current belief state.
-  bool GenerateSources(std::vector<Source2D>& sources) const;
+    std::uniform_int_distribution<unsigned int> unif_y(0, delta_ys_.size() - 1);
+    yy_ = unif_y(rng_);
 
-  // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
-  // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
-  // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
-  // is the entropy of M given measurement i, starting from the given pose.
-  void GenerateConditionals(unsigned int num_samples, const GridPose2D& pose,
-                            Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
-                            std::vector<unsigned int>& trajectory_ids) const;
+    std::uniform_int_distribution<unsigned int> unif_a(0, delta_as_.size() - 1);
+    aa_ = unif_a(rng_);
+  }
+  ~Movement2D();
 
-  // Take a measurement from the given sensor and update belief accordingly.
-  bool Update(const Sensor2D& sensor, bool solve = true);
+  // Static setters.
+  static void SetDeltaXs(const std::vector<double>& delta_xs);
+  static void SetDeltaYs(const std::vector<double>& delta_ys);
+  static void SetDeltaAngles(const std::vector<double>& delta_as);
 
-  // Compute entropy.
-  double Entropy() const;
+  // Getters.
+  unsigned int GetNumDeltaXs() const;
+  unsigned int GetNumDeltaYs() const;
+  unsigned int GetNumDeltaAngles() const;
 
- private:
-  // Solve least squares problem to update belief state.
-  void SolveLeastSquares();
+  double GetDeltaX() const;
+  double GetDeltaY() const;
+  double GetDeltaAngle() const;
 
-  // Belief state.
-  Eigen::VectorXd belief_;
+private:
+  // Static variables. Sets of dx, dy, da, where actually the real change in
+  // angle will be angular_step_ * delta_as_. Also a random number generator.
+  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
+  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
+  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
+  static double angular_step_ = 0.5;
 
-  // Problem parameters.
-  const unsigned int num_rows_;
-  const unsigned int num_cols_;
-  const unsigned int num_sources_;
+  static std::random_device rd_;
+  static std::default_random_engine rng_(rd_);
 
-  // Regularizer for belief update. Enforeces consistency across all voxels.
-  const double regularizer_;
-
-  // List of viewed indices, where each index is represented as a tuple, and
-  // corresponding measurements.
-  std::vector<std::vector<std::tuple<unsigned int, unsigned int>>> viewed_;
-  std::vector<unsigned int> measurements_;
-}; // class GridMap2D
+  // Non-static variables. Indices in the static delta vectors.
+  unsigned int xx_, yy_, aa_;
+}; // struct Movement2D
 
 } // namespace radiation
 

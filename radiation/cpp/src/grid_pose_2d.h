@@ -73,8 +73,8 @@ private:
   double x_, y_, a_;
 
   // Static dimensions.
-  static unsigned int num_rows_;
-  static unsigned int num_cols_;
+  static unsigned int num_rows_ = 10;
+  static unsigned int num_cols_ = 10;
 }; // struct GridPose2D
 
 } // namespace radiation

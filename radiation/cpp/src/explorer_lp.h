@@ -36,65 +36,55 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a 2D grid map.
+// Exploration on a 2D grid. Tries to find the specified number of radiation
+// sources (located at random lattice points) by choosing trajectories of
+// the specified number of steps that maximize mutual information between
+// simulated measurements and the true map.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_GRID_MAP_2D_H
-#define RADIATION_GRID_MAP_2D_H
+#ifndef RADIATION_EXPLORER_LP_H
+#define RADIATION_EXPLORER_LP_H
 
 #include "source_2d.h"
 #include "sensor_2d.h"
+#include "grid_map_2d.h"
+#include "grid_pose_2d.h"
+#include "movement_2d.h"
+#include "encoding.h"
 
 #include <Eigen/Core>
-#include <random>
-#include <vector>
-#include <tuple>
 
 namespace radiation {
 
-class GridMap2D {
+class ExplorerLP {
  public:
-  GridMap2D(unsigned int num_rows, unsigned int num_cols,
-            unsigned int num_sources, double regularizer);
-  ~GridMap2D();
+  ExplorerLP(unsigned int num_sources, unsigned int num_steps, double fov,
+             unsigned int num_samples);
+  ~ExplorerLP();
 
-  // Generate random sources according to the current belief state.
-  bool GenerateSources(std::vector<Source2D>& sources) const;
+  // Plan a new trajectory.
+  bool PlanAhead(std::vector<GridPose2D>& trajectory) const;
 
-  // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
-  // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
-  // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
-  // is the entropy of M given measurement i, starting from the given pose.
-  void GenerateConditionals(unsigned int num_samples, const GridPose2D& pose,
-                            Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
-                            std::vector<unsigned int>& trajectory_ids) const;
+  // Take a step along the given trajectory. Return resulting entropy.
+  double TakeStep(const std::vector<GridPose2D>& trajectory);
 
-  // Take a measurement from the given sensor and update belief accordingly.
-  bool Update(const Sensor2D& sensor, bool solve = true);
-
-  // Compute entropy.
-  double Entropy() const;
+  // Visualize the current belief state.
+  void Visualize(const std::string& title) const;
 
  private:
-  // Solve least squares problem to update belief state.
-  void SolveLeastSquares();
-
-  // Belief state.
-  Eigen::VectorXd belief_;
-
   // Problem parameters.
-  const unsigned int num_rows_;
-  const unsigned int num_cols_;
-  const unsigned int num_sources_;
+  unsigned int num_steps_;
+  unsigned int num_samples_;
+  double fov_;
 
-  // Regularizer for belief update. Enforeces consistency across all voxels.
-  const double regularizer_;
+  // Pose and sources.
+  GridPose2D pose_;
+  std::vector<Source2D> sources_;
 
-  // List of viewed indices, where each index is represented as a tuple, and
-  // corresponding measurements.
-  std::vector<std::vector<std::tuple<unsigned int, unsigned int>>> viewed_;
-  std::vector<unsigned int> measurements_;
+  // List of past poses.
+  std::vector<GridPose2D> past_poses_;
+
 }; // class GridMap2D
 
 } // namespace radiation

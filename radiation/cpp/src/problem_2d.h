@@ -36,45 +36,32 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Defines a 2D grid map.
+// Defines a problem setup, parameterized by a number of sources, number of
+// steps in each trajectory, sensor field of view, and number of samples to
+// estimate distributions from.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_GRID_MAP_2D_H
-#define RADIATION_GRID_MAP_2D_H
+#ifndef RADIATION_PROBLEM_2D_H
+#define RADIATION_PROBLEM_2D_H
 
 #include "source_2d.h"
 #include "sensor_2d.h"
+#include "grid_map_2d.h"
+#include "grid_pose_2d.h"
+#include "movement_2d.h"
+#include "encoding.h"
 
 #include <Eigen/Core>
-#include <random>
-#include <vector>
-#include <tuple>
 
 namespace radiation {
 
-class GridMap2D {
+class Problem2D {
  public:
-  GridMap2D(unsigned int num_rows, unsigned int num_cols,
-            unsigned int num_sources, double regularizer);
-  ~GridMap2D();
+  Problem2D(unsigned int num_sources, unsigned int num_steps, double fov,
+            unsigned int num_samples, );
+  ~Problem2D();
 
-  // Generate random sources according to the current belief state.
-  bool GenerateSources(std::vector<Source2D>& sources) const;
-
-  // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
-  // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
-  // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
-  // is the entropy of M given measurement i, starting from the given pose.
-  void GenerateConditionals(unsigned int num_samples, const GridPose2D& pose,
-                            Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
-                            std::vector<unsigned int>& trajectory_ids) const;
-
-  // Take a measurement from the given sensor and update belief accordingly.
-  bool Update(const Sensor2D& sensor, bool solve = true);
-
-  // Compute entropy.
-  double Entropy() const;
 
  private:
   // Solve least squares problem to update belief state.
