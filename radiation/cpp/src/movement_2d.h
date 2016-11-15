@@ -63,9 +63,9 @@ public:
   static void SetDeltaAngles(const std::vector<double>& delta_as);
 
   // Getters.
-  static unsigned int GetNumDeltaXs() const;
-  static unsigned int GetNumDeltaYs() const;
-  static unsigned int GetNumDeltaAngles() const;
+  static unsigned int GetNumDeltaXs();
+  static unsigned int GetNumDeltaYs();
+  static unsigned int GetNumDeltaAngles();
 
   unsigned int GetIndexX() const;
   unsigned int GetIndexY() const;
@@ -78,13 +78,13 @@ public:
 private:
   // Static variables. Sets of dx, dy, da, where actually the real change in
   // angle will be angular_step_ * delta_as_. Also a random number generator.
-  static std::vector<double> delta_xs_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_ys_ = {-1.0, 0.0, 1.0};
-  static std::vector<double> delta_as_ = {-1.0, 0.0, 1.0};
-  static double angular_step_ = 0.5;
+  static std::vector<double> delta_xs_;
+  static std::vector<double> delta_ys_;
+  static std::vector<double> delta_as_;
+  static double angular_step_;
 
   static std::random_device rd_;
-  static std::default_random_engine rng_(rd_);
+  static std::default_random_engine rng_;
 
   // Non-static variables. Indices in the static delta vectors.
   unsigned int xx_, yy_, aa_;

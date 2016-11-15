@@ -61,8 +61,8 @@ public:
   double GetY() const;
   double GetAngle() const;
 
-  unsigned int GetX() const;
-  unsigned int GetY() const;
+  unsigned int GetIndexX() const;
+  unsigned int GetIndexY() const;
 
   // Move by the given amount if it is legal.
   bool MoveBy(const Movement2D& movement);
@@ -72,8 +72,8 @@ private:
   double x_, y_, a_;
 
   // Static dimensions.
-  static unsigned int num_rows_ = 10;
-  static unsigned int num_cols_ = 10;
+  static unsigned int num_rows_;
+  static unsigned int num_cols_;
 }; // struct GridPose2D
 
 } // namespace radiation

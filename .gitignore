@@ -1,6 +1,9 @@
 # Figures.
 */figures/
 
+# Bazel stuff.
+bazel*
+
 # Saved data.
 *.npy
 *.csv

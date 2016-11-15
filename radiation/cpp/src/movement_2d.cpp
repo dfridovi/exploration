@@ -46,6 +46,17 @@
 
 namespace radiation {
 
+  // Static variables. Sets of dx, dy, da, where actually the real change in
+  // angle will be angular_step_ * delta_as_. Also a random number generator.
+  Movement2D::delta_xs_ = {-1.0, 0.0, 1.0};
+  Movement2D::delta_ys_ = {-1.0, 0.0, 1.0};
+  Movement2D::delta_as_ = {-1.0, 0.0, 1.0};
+  Movement2D::angular_step_ = 0.5;
+
+  Movement2D::rd_ = std::random_device();
+  Movement2D::rng_ = std::default_random_engine(rd_);
+
+  // Constructor/destructor.
   Movement2D::~Movement2D() {}
   Movement2D::Movement2D() {
     // Choose each index uniformly from the appropriate set.
@@ -85,11 +96,9 @@ namespace radiation {
   }
 
   // Getters.
-  unsigned int Movement2D::GetNumDeltaXs() const { return delta_xs_.size(); }
-  unsigned int Movement2D::GetNumDeltaYs() const { return delta_ys_.size(); }
-  unsigned int Movement2D::GetNumDeltaAngles() const {
-    return delta_as_.size();
-  }
+  unsigned int Movement2D::GetNumDeltaXs() { return delta_xs_.size(); }
+  unsigned int Movement2D::GetNumDeltaYs() { return delta_ys_.size(); }
+  unsigned int Movement2D::GetNumDeltaAngles() { return delta_as_.size(); }
 
   unsigned int Movement2D::GetIndexX() const { return xx_; }
   unsigned int Movement2D::GetIndexY() const { return yy_; }

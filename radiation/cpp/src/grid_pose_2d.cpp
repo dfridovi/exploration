@@ -47,6 +47,11 @@
 
 namespace radiation {
 
+  // Static dimensions.
+  GridPose2D::num_rows_ = 10;
+  GridPose2D::num_cols_ = 10;
+
+  // Constructor/destructor.
   GridPose2D::~GridPose2D() {}
   GridPose2D::GridPose2D(double x, double y, double a)
     : x_(x), y_(y), a_(a) {}
@@ -60,8 +65,13 @@ namespace radiation {
   double GridPose2D::GetY() const { return y_; }
   double GridPose2D::GetAngle() const { return a_; }
 
-  unsigned int GridPose2D::GetX() const { return static_cast<unsigned int>(x_); }
-  unsigned int GridPose2D::GetY() const { return static_cast<unsigned int>(y_); }
+  unsigned int GridPose2D::GetIndexX() const {
+    return static_cast<unsigned int>(x_);
+  }
+
+  unsigned int GridPose2D::GetIndexY() const {
+    return static_cast<unsigned int>(y_);
+  }
 
   // Move by the given amount if it is legal.
   bool GridPose2D::MoveBy(const Movement2D& movement) {

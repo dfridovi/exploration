@@ -43,6 +43,7 @@
 #include "grid_map_2d.h"
 
 #include <glog/logging.h>
+#include <algorithm>
 #include <math.h>
 
 namespace radiation {

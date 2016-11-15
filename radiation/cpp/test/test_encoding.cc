@@ -45,6 +45,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 #include <random>
+#include <iostream>
 
 using namespace radiation;
 
@@ -71,4 +72,16 @@ TEST(Encoding, TestSources) {
   // Decode the id back into a list of sources.
   std::vector<Source2D> decoded_sources;
   DecodeMap(map_id, kNumRows, kNumCols, kNumSources, decoded_sources);
+
+  // Check that the sources match.
+  ASSERT_EQ(sources.size(), decoded_sources.size());
+  for (size_t ii = 0; ii < kNumSources; ii++) {
+    std::cout << "Source #: " << ii << std::endl;
+
+    const Source2D original = sources[ii];
+    const Source2D decoded = decoded_sources[ii];
+
+    EXPECT_EQ(original.GetIndexX(), decoded.GetIndexX());
+    EXPECT_EQ(original.GetIndexY(), decoded.GetIndexY());
+  }
 }
