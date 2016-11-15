@@ -36,7 +36,7 @@ Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
 
 ###########################################################################
 #
-# Unit tests for encoding/decoding functions.
+# Unit tests for encoding/decoding sources, trajectories, and measurements.
 #
 ###########################################################################
 

@@ -31,25 +31,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * Please contact the author(s) of this library if you have any questions.
- * Authors: Your Name   ( your_name@eecs.berkeley.edu )
+ * Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
  */
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Test script for EmptyPackage.
+// Unit tests for encoding/decoding sources, trajectories, and measurements.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <empty_package/empty_package.h>
+#include "../src/encoding.h"
 
 #include <gtest/gtest.h>
+#include <vector>
+#include <random>
 
-// Test the EmptyPackage class.
-TEST(EmptyPackage, TestCreate) {
-  EmptyPackage ep;
-}
+using namespace radiation;
 
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+// Test encoding/decoding for sources.
+TEST(Encoding, TestSources) {
+  const unsigned int kNumRows = 10;
+  const unsigned int kNumCols = 10;
+  const unsigend int kNumSources = 5;
+
+  // Make a random number generator for each dimension.
+  std::random_device rd;
+  std::default_random_engine rng(rd);
+  std::uniform_int_distribution<unsigned int> unif_rows(0, kNumRows - 1);
+  std::uniform_int_distribution<unsigned int> unif_cols(0, kNumCols - 1);
+
+  // Generate a buch of random sources.
+  std::vector<Source2D> sources;
+  for (size_t ii = 0; ii < kNumSources; ii++)
+    sources.push_back(Source2D(unif_rows(rng), unif_cols(rng)));
+
+  // Encode these sources.
+  const unsigned int map_id = EncodeMap(sources, kNumRows, kNumCols);
+
+  // Decode the id back into a list of sources.
+  std::vector<Source2D> decoded_sources;
+  DecodeMap(map_id, kNumRows, kNumCols, kNumSources, decoded_sources);
 }
