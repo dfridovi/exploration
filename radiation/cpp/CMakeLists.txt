@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 2.8.7)
-project(berkeley_sfm C CXX)
+project(radiation C CXX)
 
 # Build options.
 option(BUILD_TESTS "Build tests" ON)
-option(BUILD_DOCUMENTATION "Build documentation" ON)
+option(BUILD_DOCUMENTATION "Build documentation" OFF)
 
 # Add cmake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
@@ -16,7 +16,7 @@ include(cmake/Utils.cmake)
 include(cmake/Dependencies.cmake)
 
 # Check for C++11 features and enable.
-bsfm_enable_cpp11()
+radiation_enable_cpp11()
 
 # Set the build type. Default to Release mode.
 if(NOT CMAKE_BUILD_TYPE)
@@ -25,20 +25,20 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 # Find and build third party libraries.
-add_subdirectory(external)
+#add_subdirectory(external)
 
-# Add the source directories to the search path so cmake can find our headers.
-include_directories(${CMAKE_SOURCE_DIR}/src/cpp/)
+# Add the include directories to the search path so cmake can find our headers.
+include_directories(${CMAKE_SOURCE_DIR}/include/)
 
-# Collect source files and build the berkeley_sfm object.
-file(GLOB_RECURSE bsfm_srcs ${CMAKE_SOURCE_DIR}/src/cpp/*.cpp)
-add_library(berkeley_sfm ${bsfm_srcs})
+# Collect source files and build the radiation object.
+file(GLOB_RECURSE radiation_srcs ${CMAKE_SOURCE_DIR}/src/*.cpp)
+add_library(radiation ${radiation_srcs})
 
 # Set up output directory for executables.
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/)
 
 # Find and build executables.
-add_subdirectory(exec)
+#add_subdirectory(exec)
 
 # Find and build tests.
 if (BUILD_TESTS)

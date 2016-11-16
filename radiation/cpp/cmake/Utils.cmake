@@ -22,7 +22,7 @@ endif()
 
 ################################################################################
 # Macro to list all directories in a directory.
-macro(bsfm_subdir_list result curdir)
+macro(radiation_subdir_list result curdir)
   file(GLOB children RELATIVE ${curdir} ${curdir}/*)
   set(dirlist "")
   foreach(child ${children})
@@ -35,7 +35,7 @@ endmacro()
 
 ################################################################################
 # Macro to list all *.cpp files in a directory.
-macro(bsfm_cpp_file_list result dir)
+macro(radiation_cpp_file_list result dir)
   file(GLOB cpp_files dir/*.cpp)
   foreach(cpp_file ${cpp_files})
     get_filename_component(cpp_file_no_ext ${cpp_file} NAME_WE)
@@ -45,7 +45,7 @@ endmacro()
 
 ################################################################################
 # Check for C++11 features and enable them.
-macro(bsfm_enable_cpp11)
+macro(radiation_enable_cpp11)
   include(CheckCXXCompilerFlag)
   check_cxx_compiler_flag("-std=c++11" COMPILER_SUPPORTS_CXX11)
   check_cxx_compiler_flag("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
@@ -60,14 +60,14 @@ endmacro()
 
 ################################################################################
 # Set the runtime directory for a target.
-function(bsfm_set_runtime_directory target runtime_dir)
+function(radiation_set_runtime_directory target runtime_dir)
   set_target_properties(${target} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY "${runtime_dir}")
 endfunction()
 
 ################################################################################
 # Set default properties for a target.
-function(bsfm_default_properties target)
+function(radiation_default_properties target)
   set_target_properties(${target} PROPERTIES
     ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/lib"
