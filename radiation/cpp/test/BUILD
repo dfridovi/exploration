@@ -3,9 +3,10 @@ cc_test(
     srcs = glob(["*.cc"]),
     copts = [
         "-Iexternal/gtest/include",
-        "-Iexternal/glog/src/windows/glog",
-        "-Iexternal/eigen/Eigen/src"
     ],
-    deps = ["@gtest//:main"],
+    deps = [
+        "@gtest//:main",
+        "//src:main",
+    ],
     size = "small",
 )

@@ -42,9 +42,9 @@
 
 #include "grid_map_2d.h"
 
-#include <glog/logging.h>
 #include <algorithm>
 #include <math.h>
+#include <assert.h>
 
 namespace radiation {
 
@@ -119,7 +119,7 @@ namespace radiation {
                          const std::vector<Source2D>& sources,
                          bool solve = true) {
     const unsigned int measurement = sensor.Sense(sources);
-    CHECK(measurement <= num_sources_);
+    assert(measurement <= num_sources_);
 
     // Identify all voxels in range and store.
     std::vector< std::tuple<unsigned int, unsigned int> > voxels;

@@ -55,8 +55,8 @@ struct Source2D {
       y_(static_cast<double>(y) + 0.5) {}
 
   // Get x/y indices.
-  unsigned int GetIndexX() { return static_cast<unsigned int>(x_); }
-  unsigned int GetIndexY() { return static_cast<unsigned int>(y_); }
+  unsigned int GetIndexX() const { return static_cast<unsigned int>(x_); }
+  unsigned int GetIndexY() const { return static_cast<unsigned int>(y_); }
 }; // struct Source2D
 
 } // namespace radiation

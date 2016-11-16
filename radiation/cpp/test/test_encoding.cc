@@ -47,17 +47,17 @@
 #include <random>
 #include <iostream>
 
-using namespace radiation;
+namespace radiation {
 
 // Test encoding/decoding for sources.
 TEST(Encoding, TestSources) {
   const unsigned int kNumRows = 10;
   const unsigned int kNumCols = 10;
-  const unsigend int kNumSources = 5;
+  const unsigned int kNumSources = 5;
 
   // Make a random number generator for each dimension.
   std::random_device rd;
-  std::default_random_engine rng(rd);
+  std::default_random_engine rng(rd());
   std::uniform_int_distribution<unsigned int> unif_rows(0, kNumRows - 1);
   std::uniform_int_distribution<unsigned int> unif_cols(0, kNumCols - 1);
 
@@ -85,3 +85,5 @@ TEST(Encoding, TestSources) {
     EXPECT_EQ(original.GetIndexY(), decoded.GetIndexY());
   }
 }
+
+} // namespace radiation
