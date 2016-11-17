@@ -27,10 +27,10 @@ endif(NOT CMAKE_BUILD_TYPE)
 # Find and build third party libraries.
 add_subdirectory(external)
 
-# Add the include directories to the search path so cmake can find our headers.
+# Add the source directories to the search path so cmake can find our headers.
 include_directories(${CMAKE_SOURCE_DIR}/include/)
 
-# Collect source files and build the radiation object.
+# Collect source files and build the berkeley_sfm object.
 file(GLOB_RECURSE radiation_srcs ${CMAKE_SOURCE_DIR}/src/*.cpp)
 add_library(radiation ${radiation_srcs})
 

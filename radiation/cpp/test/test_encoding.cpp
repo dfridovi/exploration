@@ -76,8 +76,6 @@ TEST(Encoding, TestSources) {
   // Check that the sources match.
   ASSERT_EQ(sources.size(), decoded_sources.size());
   for (size_t ii = 0; ii < kNumSources; ii++) {
-    std::cout << "Source #: " << ii << std::endl;
-
     const Source2D original = sources[ii];
     const Source2D decoded = decoded_sources[ii];
 

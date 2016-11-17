@@ -13,7 +13,7 @@ if (BUILD_TESTS)
   set(test_target run_tests)
   set(test_args --gtest_shuffle)
 
-  # Compile all tests into a single executable and link to radiation and gtest.
+  # Compile all tests into a single executable and link to berkeley_sfm and gtest.
   file(GLOB test_srcs ${CMAKE_SOURCE_DIR}/test/*.cpp)
   foreach(test ${test_srcs})
     get_filename_component(test_no_ext ${test} NAME_WE)
