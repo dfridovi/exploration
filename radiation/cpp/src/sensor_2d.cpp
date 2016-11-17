@@ -41,7 +41,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "sensor_2d.h"
+#include <sensor_2d.h>
+
+#include <math.h>
 
 namespace radiation {
 
@@ -49,8 +51,21 @@ namespace radiation {
   Sensor2D::Sensor2D(double x, double y, double a, double fov)
     : x_(x), y_(y), a_(a), fov_(fov) {}
 
+  // Getters.
+  double Sensor2D::GetX() const { return x_; }
+  double Sensor2D::GetY() const { return y_; }
+  double Sensor2D::GetAngle() const { return a_; }
+
+  unsigned int Sensor2D::GetIndexX() const {
+    return static_cast<unsigned int>(x_);
+  }
+
+  unsigned int Sensor2D::GetIndexY() const {
+    return static_cast<unsigned int>(y_);
+  }
+
   // Move to the given location and orientation.
-  void Sensor2D::MoveTo(double x, double y, double a) const {
+  void Sensor2D::MoveTo(double x, double y, double a) {
     x_ = x;
     y_ = y;
     a_ = a;
@@ -61,7 +76,7 @@ namespace radiation {
     unsigned int count = 0;
 
     for (const auto& source : sources) {
-      if SourceInView(source)
+      if (SourceInView(source))
         count++;
     }
 
@@ -88,7 +103,7 @@ namespace radiation {
     // In view if the angle of this vector int he plane is within half the
     // field of view of our current angle.
     double angle_to_source = acos(dx * cos(a_) + dy * sin(a_));
-    if (angle < 0.5 * fov_)
+    if (angle_to_source < 0.5 * fov_)
       return true;
 
     return false;

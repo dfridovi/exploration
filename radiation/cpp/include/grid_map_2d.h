@@ -43,8 +43,9 @@
 #ifndef RADIATION_GRID_MAP_2D_H
 #define RADIATION_GRID_MAP_2D_H
 
-#include "source_2d.h"
-#include "sensor_2d.h"
+#include <source_2d.h>
+#include <sensor_2d.h>
+#include <grid_pose_2d.h>
 
 #include <Eigen/Core>
 
@@ -61,7 +62,7 @@ class GridMap2D {
   ~GridMap2D();
 
   // Generate random sources according to the current belief state.
-  bool GenerateSources(std::vector<Source2D>& sources) const;
+  bool GenerateSources(std::vector<Source2D>& sources);
 
   // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
   // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of

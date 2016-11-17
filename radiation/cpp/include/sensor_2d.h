@@ -55,17 +55,25 @@ public:
   Sensor2D(double x, double y, double a, double fov);
   ~Sensor2D();
 
+  // Getters.
+  double GetX() const;
+  double GetY() const;
+  double GetAngle() const;
+
+  unsigned int GetIndexX() const;
+  unsigned int GetIndexY() const;
+
   // Move to the given location and orientation.
-  void MoveTo(double x, double y, double a) const;
+  void MoveTo(double x, double y, double a);
 
   // Sense the specified sources.
   unsigned int Sense(const std::vector<Source2D>& sources) const;
 
-private:
   // Check if a source or voxel is in view.
   bool SourceInView(const Source2D& source) const;
   bool VoxelInView(unsigned int ii, unsigned int jj) const;
 
+private:
   // Position and orientation angle.
   double x_, y_, a_;
 

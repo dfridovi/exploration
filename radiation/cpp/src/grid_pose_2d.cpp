@@ -41,15 +41,15 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "grid_pose_2d.h"
+#include <grid_pose_2d.h>
 
 #include <math.h>
 
 namespace radiation {
 
   // Static dimensions.
-  GridPose2D::num_rows_ = 10;
-  GridPose2D::num_cols_ = 10;
+  unsigned int GridPose2D::num_rows_ = 10;
+  unsigned int GridPose2D::num_cols_ = 10;
 
   // Constructor/destructor.
   GridPose2D::~GridPose2D() {}

@@ -40,7 +40,7 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "../src/encoding.h"
+#include <encoding.h>
 
 #include <gtest/gtest.h>
 #include <vector>

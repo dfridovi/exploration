@@ -40,7 +40,9 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "encoding.h"
+#include <encoding.h>
+
+#include <glog/logging.h>
 
 namespace radiation {
 
@@ -82,7 +84,7 @@ namespace radiation {
 
     GridPose2D current_pose = initial_pose;
     while (id > 0) {
-      remainder = id % base;
+      const unsigned int remainder = id % base;
 
       // Convert remainder to Movement2D.
       const unsigned int x_id = remainder % Movement2D::GetNumDeltaXs();
@@ -114,8 +116,6 @@ namespace radiation {
       trajectory.push_back(next_pose);
       current_pose = next_pose;
     }
-
-    return trajectory;
   }
 
   // Encode a sequence of measurements in an unsigned integer.
@@ -194,7 +194,8 @@ namespace radiation {
 
     // If not enough sources, the remainders must have been zero.
     while (sources.size() < num_sources) {
-      sources.push_back(Source2D(0, 0));
+      const unsigned int zero = 0;
+      sources.push_back(Source2D(zero, zero));
     }
   }
 

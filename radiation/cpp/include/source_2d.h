@@ -45,19 +45,24 @@
 
 namespace radiation {
 
-struct Source2D {
-  double x_, y_;
-
+class Source2D {
+public:
   // Construct from doubles or from unsigned ints.
   Source2D(double x, double y) : x_(x), y_(y) {}
   Source2D(unsigned int x, unsigned int y)
     : x_(static_cast<double>(x) + 0.5),
       y_(static_cast<double>(y) + 0.5) {}
 
-  // Get x/y indices.
+  // Get x/y coordinates/indices.
+  double GetX() const { return x_; }
+  double GetY() const { return y_; }
+
   unsigned int GetIndexX() const { return static_cast<unsigned int>(x_); }
   unsigned int GetIndexY() const { return static_cast<unsigned int>(y_); }
-}; // struct Source2D
+
+private:
+  double x_, y_;
+}; // class Source2D
 
 } // namespace radiation
 

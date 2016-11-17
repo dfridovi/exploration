@@ -40,21 +40,21 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "movement_2d.h"
+#include <movement_2d.h>
 
-#include <assert.h>
+#include <glog/logging.h>
 
 namespace radiation {
 
   // Static variables. Sets of dx, dy, da, where actually the real change in
   // angle will be angular_step_ * delta_as_. Also a random number generator.
-  Movement2D::delta_xs_ = {-1.0, 0.0, 1.0};
-  Movement2D::delta_ys_ = {-1.0, 0.0, 1.0};
-  Movement2D::delta_as_ = {-1.0, 0.0, 1.0};
-  Movement2D::angular_step_ = 0.5;
+  std::vector<double> Movement2D::delta_xs_ = {-1.0, 0.0, 1.0};
+  std::vector<double> Movement2D::delta_ys_ = {-1.0, 0.0, 1.0};
+  std::vector<double> Movement2D::delta_as_ = {-1.0, 0.0, 1.0};
+  double Movement2D::angular_step_ = 0.5;
 
-  Movement2D::rd_ = std::random_device();
-  Movement2D::rng_ = std::default_random_engine(rd_);
+  std::random_device Movement2D::rd_;
+  std::default_random_engine Movement2D::rng_(rd_());
 
   // Constructor/destructor.
   Movement2D::~Movement2D() {}
@@ -71,9 +71,9 @@ namespace radiation {
   }
   Movement2D::Movement2D(unsigned int x_id, unsigned int y_id, unsigned int a_id)
     : xx_(x_id), yy_(y_id), aa_(a_id) {
-    assert((xx_ >= 0) && (xx_ < delta_xs_.size()));
-    assert((yy_ >= 0) && (yy_ < delta_ys_.size()));
-    assert((aa_ >= 0) && (aa_ < delta_as_.size()));
+    CHECK((xx_ >= 0) && (xx_ < delta_xs_.size()));
+    CHECK((yy_ >= 0) && (yy_ < delta_ys_.size()));
+    CHECK((aa_ >= 0) && (aa_ < delta_as_.size()));
   }
 
   // Static setters.

@@ -3,8 +3,8 @@ if (BUILD_TESTS)
   enable_testing()
 
   # Set the local gtest include directory.
-  #set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/gtest")
-  #include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
+  set(GTEST_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/external/gtest")
+  include_directories(${gtest_SOURCE_DIR} ${gtest_SOURCE_DIR}/include)
 
   # Gtest bug fix.
   add_definitions(-DGTEST_HAS_TR1_TUPLE=0)

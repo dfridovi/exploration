@@ -40,20 +40,20 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "grid_map_2d.h"
+#include <grid_map_2d.h>
 
 #include <algorithm>
 #include <math.h>
-#include <assert.h>
+#include <glog/logging.h>
 
 namespace radiation {
 
   GridMap2D::~GridMap2D() {}
   GridMap2D::GridMap2D(unsigned int num_rows, unsigned int num_cols,
                        unsigned int num_sources, double regularizer)
-    : num_rows_(num_rows), num_cols_(num_cols_),
+    : num_rows_(num_rows), num_cols_(num_cols),
       num_sources_(num_sources), regularizer_(regularizer),
-      rng_(rd_) {
+      rng_(rd_()) {
 
     // Initialize belief matrix to be uniform.
     belief_ = Eigen::MatrixXd::Ones(num_rows_, num_cols_) * num_sources_;
@@ -61,9 +61,9 @@ namespace radiation {
   }
 
   // Generate random sources according to the current belief state.
-  bool GridMap2D::GenerateSources(std::vector<Source2D>& sources) const {
+  bool GridMap2D::GenerateSources(std::vector<Source2D>& sources) {
     const double total_belief = belief_.sum();
-    std::uniform_real_distribution unif(0.0, 1.0);
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
 
     // Choose 'num_sources_' random numbers in [0, 1], which will be sorted
     // and treated as evaluations of the CDF. Since they are uniform, the points
@@ -80,8 +80,8 @@ namespace radiation {
     unsigned int current_index = 0;
     double current_cdf = 0.0;
 
-    for (size_t ii = 0; ii < num_rows_; ii++) {
-      for (size_t jj = 0; jj < num_cols_; jj++) {
+    for (unsigned int ii = 0; ii < num_rows_; ii++) {
+      for (unsigned int jj = 0; jj < num_cols_; jj++) {
         current_cdf += belief_(ii, jj) / total_belief;
 
         // Check if we just passed the next 'cdf_eval'.
@@ -117,9 +117,9 @@ namespace radiation {
   // Take a measurement from the given sensor and update belief accordingly.
   bool GridMap2D::Update(const Sensor2D& sensor,
                          const std::vector<Source2D>& sources,
-                         bool solve = true) {
+                         bool solve) {
     const unsigned int measurement = sensor.Sense(sources);
-    assert(measurement <= num_sources_);
+    CHECK(measurement <= num_sources_);
 
     // Identify all voxels in range and store.
     std::vector< std::tuple<unsigned int, unsigned int> > voxels;
@@ -160,6 +160,7 @@ namespace radiation {
   // Solve least squares problem to update belief state.
   bool GridMap2D::SolveLeastSquares() {
     // TODO!
+    return false;
   }
 
 } // namespace radiation

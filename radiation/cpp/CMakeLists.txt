@@ -25,7 +25,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 # Find and build third party libraries.
-#add_subdirectory(external)
+add_subdirectory(external)
 
 # Add the include directories to the search path so cmake can find our headers.
 include_directories(${CMAKE_SOURCE_DIR}/include/)
@@ -38,7 +38,7 @@ add_library(radiation ${radiation_srcs})
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_SOURCE_DIR}/bin/)
 
 # Find and build executables.
-#add_subdirectory(exec)
+add_subdirectory(exec)
 
 # Find and build tests.
 if (BUILD_TESTS)
