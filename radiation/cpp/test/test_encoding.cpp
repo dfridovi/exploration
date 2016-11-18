@@ -84,4 +84,34 @@ TEST(Encoding, TestSources) {
   }
 }
 
+// Test encoding/decoding for measurements.
+TEST(Encoding, TestMeasurements) {
+  const unsigned int kMaxMeasurement = 10;
+  const unsigned int kNumMeasurements = 5;
+
+  // Make a random number generator for each dimension.
+  std::random_device rd;
+  std::default_random_engine rng(rd());
+  std::uniform_int_distribution<unsigned int> unif(0, kMaxMeasurement);
+
+  // Generate a bunch of random measurements.
+  std::vector<unsigned int> measurements;
+  for (size_t ii = 0; ii < kNumMeasurements; ii++)
+    measurements.push_back(unif(rng));
+
+  // Encode.
+  const unsigned int measurement_id =
+    EncodeMeasurements(measurements, kMaxMeasurement);
+
+  // Decode.
+  std::vector<unsigned int> decoded_measurements;
+  DecodeMeasurements(measurement_id, kMaxMeasurement, kNumMeasurements,
+                     decoded_measurements);
+
+  // Check that measurements match.
+  ASSERT_EQ(measurements.size(), decoded_measurements.size());
+  for (size_t ii = 0; ii < kNumMeasurements; ii++)
+    EXPECT_EQ(measurements[ii], decoded_measurements[ii]);
+}
+
 } // namespace radiation

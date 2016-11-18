@@ -43,6 +43,7 @@
 #include <encoding.h>
 
 #include <glog/logging.h>
+#include <iostream>
 
 namespace radiation {
 
@@ -181,6 +182,7 @@ namespace radiation {
     const unsigned int base = num_rows * num_cols;
 
     while (id > 0) {
+      std::cout << id << std::endl;
       const unsigned int remainder = id % base;
 
       // Unpack remainder into a source.
@@ -193,8 +195,8 @@ namespace radiation {
     }
 
     // If not enough sources, the remainders must have been zero.
+    const unsigned int zero = 0;
     while (sources.size() < num_sources) {
-      const unsigned int zero = 0;
       sources.push_back(Source2D(zero, zero));
     }
   }
