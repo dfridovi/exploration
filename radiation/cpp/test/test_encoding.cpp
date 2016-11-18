@@ -53,7 +53,7 @@ namespace radiation {
 TEST(Encoding, TestSources) {
   const unsigned int kNumRows = 10;
   const unsigned int kNumCols = 10;
-  const unsigned int kNumSources = 5;
+  const unsigned int kNumSources = 3;
 
   // Make a random number generator for each dimension.
   std::random_device rd;

@@ -53,14 +53,14 @@ from problem import Problem
 """ Test that estimated distributions converge with more samples. """
 def test_distribution_convergence():
     # Max deviation at any point in estimated matrices/vectors.
-    kPrecision = 0.05
+    kPrecision = 0.5
 
     # Define hyperparameters.
-    kNumSamples = 10000
+    kNumSamples = 1000
     kNumRows = 5
     kNumCols = 5
     kNumSources = 1
-    kNumSteps = 2
+    kNumSteps = 1
     kAngularStep = 0.25 * math.pi
     kSensorParams = {"x" : kNumRows/2,
                      "y" : kNumCols/2,
