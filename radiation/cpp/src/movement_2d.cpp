@@ -95,6 +95,10 @@ namespace radiation {
       delta_as_.push_back(da);
   }
 
+  void Movement2D::SetAngularStep(double angular_step) {
+    angular_step_ = angular_step;
+  }
+
   // Getters.
   unsigned int Movement2D::GetNumDeltaXs() { return delta_xs_.size(); }
   unsigned int Movement2D::GetNumDeltaYs() { return delta_ys_.size(); }

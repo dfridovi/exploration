@@ -55,6 +55,10 @@ namespace radiation {
   GridPose2D::~GridPose2D() {}
   GridPose2D::GridPose2D(double x, double y, double a)
     : x_(x), y_(y), a_(a) {}
+  GridPose2D::GridPose2D(unsigned int x, unsigned int y, double a)
+    : x_(static_cast<double>(x) + 0.5),
+      y_(static_cast<double>(y)),
+      a_(a) {}
 
   // Static setters.
   void GridPose2D::SetNumRows(unsigned int num_rows) { num_rows_ = num_rows; }

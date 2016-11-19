@@ -182,7 +182,6 @@ namespace radiation {
     const unsigned int base = num_rows * num_cols;
 
     while (id > 0) {
-      std::cout << id << std::endl;
       const unsigned int remainder = id % base;
 
       // Unpack remainder into a source.

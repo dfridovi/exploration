@@ -50,6 +50,7 @@ namespace radiation {
 class GridPose2D {
 public:
   GridPose2D(double x, double y, double a);
+  GridPose2D(unsigned int x, unsigned int y, double a);
   ~GridPose2D();
 
   // Static setters.

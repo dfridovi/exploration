@@ -61,6 +61,7 @@ public:
   static void SetDeltaXs(const std::vector<double>& delta_xs);
   static void SetDeltaYs(const std::vector<double>& delta_ys);
   static void SetDeltaAngles(const std::vector<double>& delta_as);
+  static void SetAngularStep(double angular_step);
 
   // Getters.
   static unsigned int GetNumDeltaXs();
