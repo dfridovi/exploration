@@ -51,7 +51,6 @@
 
 #include <random>
 #include <vector>
-#include <tuple>
 
 namespace radiation {
 
@@ -94,9 +93,9 @@ class GridMap2D {
   // Regularizer for belief update. Enforeces consistency across all voxels.
   const double regularizer_;
 
-  // List of viewed indices, where each index is represented as a tuple, and
+  // List of viewed indices, where each index is given in column-major form, and
   // corresponding measurements.
-  std::vector<std::vector<std::tuple<unsigned int, unsigned int>>> viewed_;
+  std::vector< std::vector<unsigned int> > viewed_;
   std::vector<unsigned int> measurements_;
 
   // Random number generator.

@@ -41,7 +41,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <grid_map_2d.h>
+#include <cost_functors.h>
 
+#include <ceres/ceres.h>
 #include <algorithm>
 #include <math.h>
 #include <glog/logging.h>
@@ -122,11 +124,11 @@ namespace radiation {
     CHECK(measurement <= num_sources_);
 
     // Identify all voxels in range and store.
-    std::vector< std::tuple<unsigned int, unsigned int> > voxels;
+    std::vector<unsigned int> voxels;
     for (size_t ii = 0; ii < num_rows_; ii++) {
       for (size_t jj = 0; jj < num_cols_; jj++) {
         if (sensor.VoxelInView(ii, jj))
-          voxels.push_back(std::make_tuple(ii, jj));
+          voxels.push_back(ii + jj * num_rows_);
       }
     }
 
@@ -159,8 +161,48 @@ namespace radiation {
 
   // Solve least squares problem to update belief state.
   bool GridMap2D::SolveLeastSquares() {
-    // TODO!
-    return false;
+    CHECK(num_rows_ * num_cols_ == 25);
+
+    // Create a non-linear least squares problem.
+    ceres::Problem problem;
+
+    // Add residual blocks for each set of observed voxels and their
+    // associated measurements. Note that 'belief_' is laid out in column-
+    // major order by default, so we can just use its underlying structure
+    // as the optimization variable.
+    for (size_t ii = 0; ii < viewed_.size(); ii++) {
+      problem.AddResidualBlock(
+        BeliefError::Create(&viewed_[ii], measurements_[ii]),
+        NULL, /* squared loss */
+        belief_.data());
+    }
+
+    // Add a final residual block to enforce consistancy across the entire grid,
+    // i.e. that the expected number of sources matches the specified number.
+    problem.AddResidualBlock(
+      BeliefRegularization::Create(num_sources_, regularizer_),
+      NULL, /* squared loss */
+      belief_.data());
+
+    // Set bounds constraints. Each voxel's belief should be a probability
+    // between 0 and 1.
+    for (int ii = 0; ii < num_rows_ * num_cols_; ii++) {
+      problem.SetParameterLowerBound(belief_.data(), ii, 0.0);
+      problem.SetParameterUpperBound(belief_.data(), ii, 1.0);
+    }
+
+    // Set up solver options.
+    ceres::Solver::Summary summary;
+    ceres::Solver::Options options;
+    options.linear_solver_type = ceres::DENSE_QR;
+    options.function_tolerance = 1e-16;
+    options.gradient_tolerance = 1e-16;
+    options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+
+    // Solve and return.
+    ceres::Solve(options, &problem, &summary);
+
+    return summary.IsSolutionUsable();
   }
 
 } // namespace radiation
