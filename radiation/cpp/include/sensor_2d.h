@@ -44,7 +44,8 @@
 #ifndef RADIATION_SENSOR_2D_H
 #define RADIATION_SENSOR_2D_H
 
-#include "source_2d.h"
+#include <source_2d.h>
+#include <grid_pose_2d.h>
 
 #include <vector>
 
@@ -53,6 +54,7 @@ namespace radiation {
 class Sensor2D {
 public:
   Sensor2D(double x, double y, double a, double fov);
+  Sensor2D(const GridPose2D& pose, double fov);
   ~Sensor2D();
 
   // Getters.

@@ -50,6 +50,8 @@ namespace radiation {
   Sensor2D::~Sensor2D() {}
   Sensor2D::Sensor2D(double x, double y, double a, double fov)
     : x_(x), y_(y), a_(a), fov_(fov) {}
+  Sensor2D::Sensor2D(const GridPose2D& pose, double fov)
+    : x_(pose.GetX()), y_(pose.GetY()), a_(pose.GetAngle()), fov_(fov) {}
 
   // Getters.
   double Sensor2D::GetX() const { return x_; }
