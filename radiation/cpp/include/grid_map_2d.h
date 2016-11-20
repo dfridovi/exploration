@@ -78,12 +78,15 @@ class GridMap2D {
   // Compute entropy.
   double Entropy() const;
 
+  // Get a reference to immutable 'belief'.
+  const Eigen::MatrixXd& GetImmutableBelief() const;
+
  private:
   // Solve least squares problem to update belief state.
   bool SolveLeastSquares();
 
   // Belief state.
-  Eigen::VectorXd belief_;
+  Eigen::MatrixXd belief_;
 
   // Problem parameters.
   const unsigned int num_rows_;

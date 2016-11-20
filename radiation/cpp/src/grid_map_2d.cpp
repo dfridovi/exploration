@@ -205,4 +205,9 @@ namespace radiation {
     return summary.IsSolutionUsable();
   }
 
+  // Get a reference to immutable 'belief'.
+  const Eigen::MatrixXd& GridMap2D::GetImmutableBelief() const {
+    return belief_;
+  }
+
 } // namespace radiation

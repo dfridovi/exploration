@@ -48,16 +48,18 @@
 #include <vector>
 #include <random>
 #include <iostream>
+#include <limits>
 #include <math.h>
 
 namespace radiation {
 
-// Test ethat we can detect sources randomly located across the grid.
+// Test that we can detect sources randomly located across the grid.
 TEST(GridMap2D, TestEmptyMap) {
-  const unsigned int kNumRows = 10;
-  const unsigned int kNumCols = 10;
+  const unsigned int kNumRows = 5;
+  const unsigned int kNumCols = 5;
   const unsigned int kNumSources = 1;
   const double kRegularizer = 0.0;
+  const unsigned int kNumUpdates = 10;
 
   // Set static variables.
   GridPose2D::SetNumRows(kNumRows);
@@ -68,36 +70,77 @@ TEST(GridMap2D, TestEmptyMap) {
   std::default_random_engine rng(rd());
   std::uniform_int_distribution<unsigned int> unif_rows(0, kNumRows - 1);
   std::uniform_int_distribution<unsigned int> unif_cols(0, kNumCols - 1);
-  std::uniform_real_distribution<double> unif_angle(0.0, 0.25 * M_PI);
 
-  // Always place the sensor at the same pose.
-  const double kAngle = 0.25 * M_PI;
+  // Place an omnidirectional sensor at the origin.
+  const double kAngle = 0.0;
+  const double kFov = 2.0 * M_PI;
   const GridPose2D sensor_pose(0.0, 0.0, kAngle);
+  const Sensor2D sensor(sensor_pose, kFov);
 
-  // Generate a buch of random sources.
-  std::vector<Source2D> sources;
-  for (size_t jj = 0; jj < kNumSources; jj++)
-    sources.push_back(Source2D(unif_rows(rng), unif_cols(rng)));
+  // Update a bunch of times, and check that the maps' 'belief' has
+  // converged to zero.
+  std::vector<Source2D> empty_sources;
+  GridMap2D map(kNumRows, kNumCols, kNumSources, kRegularizer);
 
-  // Generate a random field of view..
-  const double fov = unif_angle(rng);
-  const Sensor2D sensor(sensor_pose, fov);
+  double belief_norm = map.GetImmutableBelief().norm();
+  for (unsigned int ii = 0; ii < kNumUpdates; ii++) {
+    EXPECT_TRUE(map.Update(sensor, empty_sources, true));
 
-  // Count the sources in view, using the fact that the FOV is a cone
-  // looking into the first quadrant.
-  unsigned int total_count = 0;
-  for (const auto& source : sources) {
-    const double angle = atan2(source.GetY(), source.GetX());
-    if ((angle >= kAngle - 0.5 * fov) && (angle <= kAngle + 0.5 * fov)) {
-      EXPECT_TRUE(sensor.SourceInView(source));
-      total_count++;
-    } else {
-      EXPECT_FALSE(sensor.SourceInView(source));
-    }
+    // Make sure norm of 'belief' has decreased.
+    const double updated_norm = map.GetImmutableBelief().norm();
+    EXPECT_LE(updated_norm, belief_norm);
+    belief_norm = updated_norm;
   }
 
-  // Check that the sensor measurement matches 'total_count'.
-  EXPECT_EQ(sensor.Sense(sources), total_count);
+  const Eigen::MatrixXd belief = map.GetImmutableBelief();
+  for (unsigned int ii = 0; ii < kNumRows; ii++)
+    for (unsigned int jj = 0; jj < kNumCols; jj++)
+      EXPECT_NEAR(belief(ii, jj), 0.0, 1e-4);
+}
+
+// Test that we can detect sources randomly located across the grid.
+TEST(GridMap2D, TestConvergence) {
+  const unsigned int kNumRows = 5;
+  const unsigned int kNumCols = 5;
+  const unsigned int kNumSources = 1;
+  const double kRegularizer = 1.0;
+  const unsigned int kNumUpdates = 10;
+
+  // Set static variables.
+  GridPose2D::SetNumRows(kNumRows);
+  GridPose2D::SetNumCols(kNumCols);
+
+  // Make random number generators.
+  std::random_device rd;
+  std::default_random_engine rng(rd());
+  std::uniform_int_distribution<unsigned int> unif_rows(0, kNumRows - 1);
+  std::uniform_int_distribution<unsigned int> unif_cols(0, kNumCols - 1);
+
+  // Place an omnidirectional sensor at the origin.
+  const double kAngle = 0.0;
+  const double kFov = 2.0 * M_PI;
+  const GridPose2D sensor_pose(0.0, 0.0, kAngle);
+  const Sensor2D sensor(sensor_pose, kFov);
+
+  // Update a bunch of times, and check that the maps' 'belief' has
+  // converged to zero.
+  std::vector<Source2D> empty_sources;
+  GridMap2D map(kNumRows, kNumCols, kNumSources, kRegularizer);
+
+  double belief_norm = map.GetImmutableBelief().norm();
+  for (unsigned int ii = 0; ii < kNumUpdates; ii++) {
+    EXPECT_TRUE(map.Update(sensor, empty_sources, true));
+
+    // Make sure norm of 'belief' has decreased.
+    const double updated_norm = map.GetImmutableBelief().norm();
+    EXPECT_LE(updated_norm, belief_norm);
+    belief_norm = updated_norm;
+  }
+
+  const Eigen::MatrixXd belief = map.GetImmutableBelief();
+  for (unsigned int ii = 0; ii < kNumRows; ii++)
+    for (unsigned int jj = 0; jj < kNumCols; jj++)
+      EXPECT_NEAR(belief(ii, jj), 0.0, 1e-4);
 }
 
 } // namespace radiation
