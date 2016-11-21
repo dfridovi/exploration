@@ -48,7 +48,7 @@
 #include <glog/logging.h>
 #include <math.h>
 #include <algorithm>
-#include <unordered_map>
+#include <map>
 
 namespace radiation {
 
@@ -114,17 +114,17 @@ namespace radiation {
   void GridMap2D::GenerateConditionals(
      unsigned int num_samples, unsigned int num_steps, const GridPose2D& pose,
      double sensor_fov, Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
-     std::vector<unsigned int>& trajectory_ids) const {
+     std::vector<unsigned int>& trajectory_ids) {
     // Compute the number of possible maps and measurements.
     const unsigned int kNumMeasurements = pow(num_sources_ + 1, num_steps);
     const unsigned int kNumMaps = pow(num_rows_ * num_cols_, num_steps);
 
-    // Create a hash table to keep track of counts for each trajectory.
-    std::unordered_map<unsigned int, Eigen::VectorXd> zx_samples;
+    // Create a map to keep track of counts for each trajectory.
+    std::map<unsigned int, Eigen::VectorXd> zx_samples;
 
     // Create an empty matrix to store the joint distribution [P_{M, Z}].
-    Eigen::MatrixXd zm_joint =
-      Eigen::MatrixXd::Zeros(kNumMeasurements, kNumMaps);
+    Eigen::MatrixXd pzm =
+      Eigen::MatrixXd::Zero(kNumMeasurements, kNumMaps);
 
     // Generate a ton of sampled data.
     for (unsigned int ii = 0; ii < num_samples; ii++) {
@@ -159,46 +159,61 @@ namespace radiation {
       const unsigned int measurement_id =
         EncodeMeasurements(measurements, num_sources_);
 
-      // Record this sample in the 'zm_joint' matrix.
-      zm_joint(measurement_id, map_id) += 1.0;
+      // Record this sample in the 'pzm' matrix.
+      pzm(measurement_id, map_id) += 1.0;
 
-      // Record this sample in the 'zx_samples' hashmap.
-      if (zx_samples.count(trajectory_id) > 0)
-        zx_samples.insert({trajectory_id,
-                           Eigen::VectorXd::Zeros(kNumMeasurements)});
-
-      zx_samples[trajectory_id](measurement_id) += 1.0;
+      // Record this sample in the 'zx_samples' map.
+      if (zx_samples.count(trajectory_id) == 0) {
+        Eigen::VectorXd counts = Eigen::VectorXd::Zero(kNumMeasurements);
+        counts(measurement_id) = 1.0;
+        zx_samples.insert({trajectory_id, counts});
+      } else {
+        zx_samples.at(trajectory_id)(measurement_id) += 1.0;
+      }
     }
 
     // Convert 'zx_samples' into a matrix joint distribution.
-    Eigen::MatrixXd zx_joint =
-      Eigen::MatrixXd::Zeros(kNumMeasurements, zx_samples.size());
-    std::vector<unsigned int> trajectory_ids;
+    pzx.resize(kNumMeasurements, zx_samples.size());
+    pzx = Eigen::MatrixXd::Zero(kNumMeasurements, zx_samples.size());
+    trajectory_ids.clear();
     trajectory_ids.reserve(zx_samples.size());
 
     unsigned int idx = 0;
     for (auto pair = zx_samples.begin(); pair != zx_samples.end(); pair++) {
       trajectory_ids.push_back(pair->first);
-      zx_joint.col(idx++) = pair->second;
+      pzx.col(idx++) = pair->second;
     }
 
     // Normalize so that all rows sum to unity in both distributions.
     for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
-      const double zm_row_sum = zm_joint.row(ii).sum();
+      const double zm_row_sum = pzm.row(ii).sum();
       if (zm_row_sum < 1.0)
         VLOG(1) << "Encountered measurement with no support in P_{Z|M}.";
       else
-        zm_joint.row(ii) /= zm_row_sum;
+        pzm.row(ii) /= zm_row_sum;
 
-      const double zx_row_sum = zx_joint.row(ii).sum();
+      const double zx_row_sum = pzx.row(ii).sum();
       if (zx_row_sum < 1.0)
         VLOG(1) << "Encountered measurement with no support in P_{Z|X}.";
       else
-        zx_joint.row(ii) /= zx_row_sum;
+        pzx.row(ii) /= zx_row_sum;
     }
 
     // Compute [h_{M|Z}], the conditional entropy vector.
+    hmz.resize(kNumMeasurements);
+    for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
+      hmz(ii) = 0.0;
 
+      for (unsigned int jj = 0; jj < kNumMaps; jj++) {
+        const double p = pzm(ii, jj);
+
+        // Catch 'p' values near 0 or 1.
+        if (p < 1e-4 || p > 1.0 - 1e-4)
+          continue;
+
+        hmz(ii) -= p * log(p);
+      }
+    }
   }
 
   // Take a measurement from the given sensor and update belief accordingly.

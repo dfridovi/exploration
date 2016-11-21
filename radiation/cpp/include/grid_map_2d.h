@@ -70,7 +70,7 @@ class GridMap2D {
   void GenerateConditionals(unsigned int num_samples, unsigned int num_steps,
                             const GridPose2D& pose, double sensor_fov,
                             Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
-                            std::vector<unsigned int>& trajectory_ids) const;
+                            std::vector<unsigned int>& trajectory_ids);
 
   // Take a measurement from the given sensor and update belief accordingly.
   bool Update(const Sensor2D& sensor,
