@@ -41,12 +41,14 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <grid_map_2d.h>
+#include <encoding.h>
 #include <cost_functors.h>
 
 #include <ceres/ceres.h>
-#include <algorithm>
-#include <math.h>
 #include <glog/logging.h>
+#include <math.h>
+#include <algorithm>
+#include <unordered_map>
 
 namespace radiation {
 
@@ -110,10 +112,93 @@ namespace radiation {
   // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
   // is the entropy of M given measurement i, starting from the given pose.
   void GridMap2D::GenerateConditionals(
-     unsigned int num_samples, const GridPose2D& pose,
-     Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
+     unsigned int num_samples, unsigned int num_steps, const GridPose2D& pose,
+     double sensor_fov, Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
      std::vector<unsigned int>& trajectory_ids) const {
-    // TODO!
+    // Compute the number of possible maps and measurements.
+    const unsigned int kNumMeasurements = pow(num_sources_ + 1, num_steps);
+    const unsigned int kNumMaps = pow(num_rows_ * num_cols_, num_steps);
+
+    // Create a hash table to keep track of counts for each trajectory.
+    std::unordered_map<unsigned int, Eigen::VectorXd> zx_samples;
+
+    // Create an empty matrix to store the joint distribution [P_{M, Z}].
+    Eigen::MatrixXd zm_joint =
+      Eigen::MatrixXd::Zeros(kNumMeasurements, kNumMaps);
+
+    // Generate a ton of sampled data.
+    for (unsigned int ii = 0; ii < num_samples; ii++) {
+      // Generate random sources on the grid according to the current 'belief',
+      // and compute a corresponding 'map_id' number based on which grid cells
+      // the sources lie in.
+      std::vector<Source2D> sources;
+      if (!GenerateSources(sources)) {
+        VLOG(1) << "Unable to generate sources. Skipping this sample.";
+        continue;
+      }
+
+      const unsigned int map_id = EncodeMap(sources, num_rows_, num_cols_);
+
+      // Pick a random trajectory starting at the given pose. At each step,
+      // take a measurement and record the data.
+      GridPose2D current_pose = pose;
+      std::vector<Movement2D> movements;
+      std::vector<unsigned int> measurements;
+      while (movements.size() < num_steps) {
+        const Movement2D step;
+        if (current_pose.MoveBy(step)) {
+          movements.push_back(step);
+
+          const Sensor2D sensor(current_pose, sensor_fov);
+          measurements.push_back(sensor.Sense(sources));
+        }
+      }
+
+      // Compute trajectory and measurement sequence ids.
+      const unsigned int trajectory_id = EncodeTrajectory(movements);
+      const unsigned int measurement_id =
+        EncodeMeasurements(measurements, num_sources_);
+
+      // Record this sample in the 'zm_joint' matrix.
+      zm_joint(measurement_id, map_id) += 1.0;
+
+      // Record this sample in the 'zx_samples' hashmap.
+      if (zx_samples.count(trajectory_id) > 0)
+        zx_samples.insert({trajectory_id,
+                           Eigen::VectorXd::Zeros(kNumMeasurements)});
+
+      zx_samples[trajectory_id](measurement_id) += 1.0;
+    }
+
+    // Convert 'zx_samples' into a matrix joint distribution.
+    Eigen::MatrixXd zx_joint =
+      Eigen::MatrixXd::Zeros(kNumMeasurements, zx_samples.size());
+    std::vector<unsigned int> trajectory_ids;
+    trajectory_ids.reserve(zx_samples.size());
+
+    unsigned int idx = 0;
+    for (auto pair = zx_samples.begin(); pair != zx_samples.end(); pair++) {
+      trajectory_ids.push_back(pair->first);
+      zx_joint.col(idx++) = pair->second;
+    }
+
+    // Normalize so that all rows sum to unity in both distributions.
+    for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
+      const double zm_row_sum = zm_joint.row(ii).sum();
+      if (zm_row_sum < 1.0)
+        VLOG(1) << "Encountered measurement with no support in P_{Z|M}.";
+      else
+        zm_joint.row(ii) /= zm_row_sum;
+
+      const double zx_row_sum = zx_joint.row(ii).sum();
+      if (zx_row_sum < 1.0)
+        VLOG(1) << "Encountered measurement with no support in P_{Z|X}.";
+      else
+        zx_joint.row(ii) /= zx_row_sum;
+    }
+
+    // Compute [h_{M|Z}], the conditional entropy vector.
+
   }
 
   // Take a measurement from the given sensor and update belief accordingly.

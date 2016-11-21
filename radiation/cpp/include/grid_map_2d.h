@@ -67,7 +67,8 @@ class GridMap2D {
   // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
   // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
   // is the entropy of M given measurement i, starting from the given pose.
-  void GenerateConditionals(unsigned int num_samples, const GridPose2D& pose,
+  void GenerateConditionals(unsigned int num_samples, unsigned int num_steps,
+                            const GridPose2D& pose, double sensor_fov,
                             Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
                             std::vector<unsigned int>& trajectory_ids) const;
 
