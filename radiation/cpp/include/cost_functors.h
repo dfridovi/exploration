@@ -95,14 +95,14 @@ struct BeliefError {
                                      const std::vector<unsigned int>* voxels,
                                      const unsigned int measurement) {
     // Only a single residual.
-    static const int kNumResiduals = 1;
+    const int kNumResiduals = 1;
 
     // Number of parameters is the number of grid cells.
-    static const int kNumParameters = static_cast<int>(num_rows * num_cols);
+    const int kNumParameters = static_cast<int>(num_rows * num_cols);
 
     // Stride. Number of derivatives to calculate. See below for details:
     // http://ceres-solver.org/nnls_modeling.html#dynamicautodiffcostfunction
-    static const int kStride = 4;
+    const int kStride = 4;
 
     ceres::DynamicAutoDiffCostFunction<BeliefError, kStride>* cost =
       new ceres::DynamicAutoDiffCostFunction<BeliefError, kStride>(
@@ -151,14 +151,14 @@ struct BeliefRegularization {
                                      unsigned int num_sources,
                                      double regularizer) {
     // Only a single residual.
-    static const int kNumResiduals = 1;
+    const int kNumResiduals = 1;
 
     // Number of parameters is the number of grid cells.
-    static const int kNumParameters = static_cast<int>(num_rows * num_cols);
+    const int kNumParameters = static_cast<int>(num_rows * num_cols);
 
     // Stride. Number of derivatives to calculate. See below for details:
     // http://ceres-solver.org/nnls_modeling.html#dynamicautodiffcostfunction
-    static const int kStride = 4;
+    const int kStride = 4;
 
     ceres::DynamicAutoDiffCostFunction<BeliefRegularization, kStride>* cost =
       new ceres::DynamicAutoDiffCostFunction<BeliefRegularization, kStride>(
