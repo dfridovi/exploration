@@ -180,7 +180,8 @@ namespace radiation {
     // Add a final residual block to enforce consistancy across the entire grid,
     // i.e. that the expected number of sources matches the specified number.
     problem.AddResidualBlock(
-      BeliefRegularization::Create(num_sources_, regularizer_),
+      BeliefRegularization::Create(num_sources_,
+                                   regularizer_ * viewed_.size()),
       NULL, /* squared loss */
       belief_.data());
 
