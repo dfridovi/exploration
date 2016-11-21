@@ -77,31 +77,39 @@ struct BeliefError {
   }
 
   template <typename T>
-  bool operator()(const T* const belief, T* expected_error) const {
+  bool operator()(T const* const* belief, T* expected_error) const {
     // Compute the difference between the expected measurement and the
     // actual measurement.
     *expected_error = -static_cast<T>(measurement_);
 
     for (const auto& voxel_id : *voxels_) {
-      *expected_error += belief[voxel_id];
+      *expected_error += belief[0][voxel_id];
     }
 
     return true;
   }
 
   // Factory method.
-  static ceres::CostFunction* Create(const std::vector<unsigned int>* voxels,
+  static ceres::CostFunction* Create(unsigned int num_rows,
+                                     unsigned int num_cols,
+                                     const std::vector<unsigned int>* voxels,
                                      const unsigned int measurement) {
     // Only a single residual.
     static const int kNumResiduals = 1;
 
     // Number of parameters is the number of grid cells.
-    // MAKE SURE TO CHANGE THIS IF THE NUMBER OF GRID CELLS CHANGES.
-    static const int kNumParameters = 25;
+    static const int kNumParameters = static_cast<int>(num_rows * num_cols);
 
-    return new ceres::AutoDiffCostFunction<BeliefError,
-      kNumResiduals,
-      kNumParameters>(new BeliefError(voxels, measurement));
+    // Stride. Number of derivatives to calculate. See below for details:
+    // http://ceres-solver.org/nnls_modeling.html#dynamicautodiffcostfunction
+    static const int kStride = 4;
+
+    ceres::DynamicAutoDiffCostFunction<BeliefError, kStride>* cost =
+      new ceres::DynamicAutoDiffCostFunction<BeliefError, kStride>(
+        new BeliefError(voxels, measurement));
+    cost->AddParameterBlock(kNumParameters);
+    cost->SetNumResiduals(kNumResiduals);
+    return cost;
   }
 };  // struct BeliefError
 
@@ -112,23 +120,24 @@ struct BeliefRegularization {
   // Inputs: true number of sources and regularization tradeoff parameter.
   // Optimization variables are the probability that each voxel contains a
   // source.
+  const unsigned int num_parameters_;
   const unsigned int num_sources_;
   const double regularizer_;
 
-  BeliefRegularization(unsigned int num_sources, double regularizer)
-  : num_sources_(num_sources), regularizer_(sqrt(regularizer)) {}
+  BeliefRegularization(unsigned int num_parameters, int num_sources,
+                       double regularizer)
+    : num_parameters_(num_parameters),
+      num_sources_(num_sources),
+      regularizer_(sqrt(regularizer)) {}
 
   template <typename T>
-  bool operator()(const T* const belief, T* expected_error) const {
+  bool operator()(T const* const* belief, T* expected_error) const {
     // Compute the difference between the expected measurement and the
     // actual measurement.
     *expected_error = -static_cast<T>(num_sources_);
 
-    // Set this equal to 25 for now.
-    const unsigned int kNumParameters = 25;
-
-    for (size_t ii = 0; ii < kNumParameters; ii++) {
-      *expected_error += belief[ii];
+    for (size_t ii = 0; ii < num_parameters_; ii++) {
+      *expected_error += belief[0][ii];
     }
 
     *expected_error *= static_cast<T>(regularizer_);
@@ -137,18 +146,28 @@ struct BeliefRegularization {
   }
 
   // Factory method.
-  static ceres::CostFunction* Create(unsigned int num_sources,
+  static ceres::CostFunction* Create(unsigned int num_rows,
+                                     unsigned int num_cols,
+                                     unsigned int num_sources,
                                      double regularizer) {
     // Only a single residual.
     static const int kNumResiduals = 1;
 
     // Number of parameters is the number of grid cells.
-    // MAKE SURE TO CHANGE THIS IF THE NUMBER OF GRID CELLS CHANGES.
-    static const int kNumParameters = 25;
+    static const int kNumParameters = static_cast<int>(num_rows * num_cols);
 
-    return new ceres::AutoDiffCostFunction<BeliefRegularization,
-      kNumResiduals,
-      kNumParameters>(new BeliefRegularization(num_sources, regularizer));
+    // Stride. Number of derivatives to calculate. See below for details:
+    // http://ceres-solver.org/nnls_modeling.html#dynamicautodiffcostfunction
+    static const int kStride = 4;
+
+    ceres::DynamicAutoDiffCostFunction<BeliefRegularization, kStride>* cost =
+      new ceres::DynamicAutoDiffCostFunction<BeliefRegularization, kStride>(
+        new BeliefRegularization(num_rows * num_cols,
+                                 num_sources, regularizer));
+
+    cost->AddParameterBlock(kNumParameters);
+    cost->SetNumResiduals(kNumResiduals);
+    return cost;
   }
 };  // struct BeliefRegularization
 

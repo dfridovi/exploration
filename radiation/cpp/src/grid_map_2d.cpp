@@ -161,8 +161,6 @@ namespace radiation {
 
   // Solve least squares problem to update belief state.
   bool GridMap2D::SolveLeastSquares() {
-    CHECK(num_rows_ * num_cols_ == 25);
-
     // Create a non-linear least squares problem.
     ceres::Problem problem;
 
@@ -172,7 +170,8 @@ namespace radiation {
     // as the optimization variable.
     for (size_t ii = 0; ii < viewed_.size(); ii++) {
       problem.AddResidualBlock(
-        BeliefError::Create(&viewed_[ii], measurements_[ii]),
+        BeliefError::Create(num_rows_, num_cols_,
+                            &viewed_[ii], measurements_[ii]),
         NULL, /* squared loss */
         belief_.data());
     }
@@ -180,7 +179,7 @@ namespace radiation {
     // Add a final residual block to enforce consistancy across the entire grid,
     // i.e. that the expected number of sources matches the specified number.
     problem.AddResidualBlock(
-      BeliefRegularization::Create(num_sources_,
+      BeliefRegularization::Create(num_rows_, num_cols_, num_sources_,
                                    regularizer_ * viewed_.size()),
       NULL, /* squared loss */
       belief_.data());

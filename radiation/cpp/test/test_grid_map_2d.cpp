@@ -55,8 +55,8 @@ namespace radiation {
 
 // Test that we can detect sources randomly located across the grid.
 TEST(GridMap2D, TestEmptyMap) {
-  const unsigned int kNumRows = 5;
-  const unsigned int kNumCols = 5;
+  const unsigned int kNumRows = 10;
+  const unsigned int kNumCols = 10;
   const unsigned int kNumSources = 1;
   const double kRegularizer = 0.0;
   const unsigned int kNumUpdates = 10;
@@ -100,8 +100,8 @@ TEST(GridMap2D, TestEmptyMap) {
 
 // Test that we can detect sources randomly located across the grid.
 TEST(GridMap2D, TestConvergenceSingleSource) {
-  const unsigned int kNumRows = 5;
-  const unsigned int kNumCols = 5;
+  const unsigned int kNumRows = 10;
+  const unsigned int kNumCols = 10;
   const unsigned int kNumSources = 1;
   const double kRegularizer = 1.0;
   const unsigned int kNumUpdates = 100;
@@ -164,8 +164,8 @@ TEST(GridMap2D, TestConvergenceSingleSource) {
 
 // Test that we can detect sources randomly located across the grid.
 TEST(GridMap2D, TestConvergenceMultipleSources) {
-  const unsigned int kNumRows = 5;
-  const unsigned int kNumCols = 5;
+  const unsigned int kNumRows = 10;
+  const unsigned int kNumCols = 10;
   const unsigned int kNumSources = 5;
   const double kRegularizer = 1.0;
   const unsigned int kNumUpdates = 100;
