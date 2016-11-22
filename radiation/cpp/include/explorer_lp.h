@@ -67,7 +67,7 @@ class ExplorerLP {
   ~ExplorerLP();
 
   // Plan a new trajectory.
-  bool PlanAhead(std::vector<GridPose2D>& trajectory) const;
+  bool PlanAhead(std::vector<GridPose2D>& trajectory);
 
   // Take a step along the given trajectory. Return resulting entropy.
   double TakeStep(const std::vector<GridPose2D>& trajectory);

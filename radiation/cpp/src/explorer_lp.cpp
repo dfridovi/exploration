@@ -62,13 +62,14 @@ ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
   : map_(num_rows, num_cols, num_sources, regularizer),
     num_steps_(num_steps),
     num_samples_(num_samples),
+    pose_(0.0, 0.0, 0.0),
     fov_(fov) {
   // Set up a random number generator.
   std::random_device rd;
-  std::default_random_generator rng(rd());
+  std::default_random_engine rng(rd());
   std::uniform_int_distribution<unsigned int> unif_rows(0, num_rows - 1);
   std::uniform_int_distribution<unsigned int> unif_cols(0, num_cols - 1);
-  std::uniform_real_distibution<double> unif_angle(0.0, 2.0 * M_PI);
+  std::uniform_real_distribution<double> unif_angle(0.0, 2.0 * M_PI);
 
   // Choose random sources.
   for (unsigned int ii = 0; ii < num_sources; ii++) {
@@ -81,7 +82,7 @@ ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
 }
 
 // Plan a new trajectory.
-bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) const {
+bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) {
   // Use GUROBI to set up and solve a linear program. Since GUROBI uses
   // exceptions to communicate errors, we enclose the entire planner in
   // a try/catch block.
@@ -94,7 +95,7 @@ bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) const {
     Eigen::MatrixXd pzx;
     Eigen::VectorXd hmz;
     std::vector<unsigned int> trajectory_ids;
-    map.GenerateConditionals(num_samples_, num_steps_, pose_, fov_,
+    map_.GenerateConditionals(num_samples_, num_steps_, pose_, fov_,
                              pzx, hmz, trajectory_ids);
 
     // Get vector of objective coefficients.
@@ -120,12 +121,35 @@ bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) const {
     }
 
     model.setObjective(objective, GRB_MAXIMIZE);
-    model.addConstraint(constraint == 1.0, "probability");
+    model.addConstr(constraint == 1.0, "probability");
 
     // Optimize the model.
     model.optimize();
-  } catch {}
 
+    // Sample from the optimal distribution at random. Choose a random value in
+    // [0.0, 1.0] and step through the distribution until we exceed this value.
+    std::random_device rd;
+    std::default_random_engine rng(rd());
+    std::uniform_real_distribution<double> unif(0.0, 1.0);
+
+    const double random_value = unif(rng);
+    double cdf = 0.0;
+    unsigned int vertex_id = 0;
+    while (cdf < random_value && vertex_id < variables.size())
+      cdf += variables[vertex_id++].get(GRB_DoubleAttr_X);
+
+    const unsigned int trajectory_id = trajectory_ids[--vertex_id];
+
+    // Decode this trajectory id.
+    trajectory.clear();
+    DecodeTrajectory(trajectory_id, num_steps_, pose_, trajectory);
+    return true;
+  } catch (GRBException exception) {
+    VLOG(1) << "Gurobi error code : " << exception.getErrorCode();
+    VLOG(1) << exception.getMessage();
+  } catch (...) {
+    VLOG(1) << "Exception during optimization.";
+  }
 
   return false;
 }
