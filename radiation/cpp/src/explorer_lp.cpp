@@ -43,53 +43,68 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_EXPLORER_LP_H
-#define RADIATION_EXPLORER_LP_H
+#include <explorer_lp.h>
 
-#include <source_2d.h>
-#include <sensor_2d.h>
-#include <grid_map_2d.h>
-#include <grid_pose_2d.h>
-#include <movement_2d.h>
-#include <encoding.h>
-
-#include <Eigen/Core>
-#include <vector>
+#include <glog/logging.h>
+#include <gurobi_c++.h>
+#include <random>
+#include <math.h>
 
 namespace radiation {
 
-class ExplorerLP {
- public:
-  ExplorerLP(unsigned int num_rows, unsigned int num_cols,
-             unsigned int num_sources, double regularizer,
-             unsigned int num_steps, double fov,
-             unsigned int num_samples);
-  ~ExplorerLP();
+// Constructor/destructor.
+ExplorerLP::~ExplorerLP() {}
+ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
+                       unsigned int num_sources, double regularizer,
+                       unsigned int num_steps, double fov,
+                       unsigned int num_samples)
+  : map_(num_rows, num_cols, num_sources, regularizer),
+    num_steps_(num_steps),
+    num_samples_(num_samples),
+    fov_(fov) {
+  // Set up a random number generator.
+  std::random_device rd;
+  std::default_random_generator rng(rd());
+  std::uniform_int_distribution<unsigned int> unif_rows(0, num_rows - 1);
+  std::uniform_int_distribution<unsigned int> unif_cols(0, num_cols - 1);
+  std::uniform_real_distibution<double> unif_angle(0.0, 2.0 * M_PI);
 
-  // Plan a new trajectory.
-  bool PlanAhead(std::vector<GridPose2D>& trajectory) const;
+  // Choose random sources.
+  for (unsigned int ii = 0; ii < num_sources; ii++) {
+    const Source2D source(unif_rows(rng), unif_cols(rng));
+    sources_.push_back(source);
+  }
 
-  // Take a step along the given trajectory. Return resulting entropy.
-  double TakeStep(const std::vector<GridPose2D>& trajectory);
+  // Choose a random initial pose.
+  pose_ = GridPose2D(unif_rows(rng), unif_cols(rng), unif_angle(rng));
+}
 
-  // Visualize the current belief state.
-  void Visualize(const std::string& title) const;
+// Plan a new trajectory.
+bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) const {
+  // TODO!
+  return false;
+}
 
- private:
-  // Problem parameters.
-  unsigned int num_steps_;
-  unsigned int num_samples_;
-  double fov_;
+// Take a step along the given trajectory. Return resulting entropy.
+double ExplorerLP::TakeStep(const std::vector<GridPose2D>& trajectory) {
+  CHECK(trajectory.size() > 0);
 
-  // Map, pose, and sources.
-  GridMap2D map_;
-  GridPose2D pose_;
-  std::vector<Source2D> sources_;
+  // Update list of past poses.
+  past_poses_.push_back(pose_);
 
-  // List of past poses.
-  std::vector<GridPose2D> past_poses_;
-}; // class ExplorerLP
+  // Update the current pose.
+  pose_ = trajectory[0];
+
+  // Update the map, and return entropy.
+  const Sensor2D sensor(pose_, fov_);
+  map_.Update(sensor, sources_, true);
+
+  return map_.Entropy();
+}
+
+// Visualize the current belief state.
+void ExplorerLP::Visualize(const std::string& title) const {
+  // TODO!
+}
 
 } // namespace radiation
-
-#endif
