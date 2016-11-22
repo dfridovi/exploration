@@ -48,6 +48,7 @@
 #include <glog/logging.h>
 #include <gurobi_c++.h>
 #include <random>
+#include <string>
 #include <math.h>
 
 namespace radiation {
@@ -81,7 +82,51 @@ ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
 
 // Plan a new trajectory.
 bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) const {
-  // TODO!
+  // Use GUROBI to set up and solve a linear program. Since GUROBI uses
+  // exceptions to communicate errors, we enclose the entire planner in
+  // a try/catch block.
+  try {
+    // Create an empty environment and model.
+    GRBEnv env = GRBEnv();
+    GRBModel model = GRBModel(env);
+
+    // Generate conditional distributions.
+    Eigen::MatrixXd pzx;
+    Eigen::VectorXd hmz;
+    std::vector<unsigned int> trajectory_ids;
+    map.GenerateConditionals(num_samples_, num_steps_, pose_, fov_,
+                             pzx, hmz, trajectory_ids);
+
+    // Get vector of objective coefficients.
+    const Eigen::VectorXd coefficients = pzx.transpose() * hmz;
+
+    // Create GUROBI variables.
+    std::vector<GRBVar> variables;
+    for (unsigned int ii = 0; ii < trajectory_ids.size(); ii++) {
+      GRBVar p = model.addVar(0.0, /* lower bound */
+                              1.0, /* upper bound */
+                              0.0, /* objective coefficient */
+                              GRB_CONTINUOUS, /* type */
+                              "p" + std::to_string(ii) /* name */);
+      variables.push_back(p);
+    }
+
+    // Set up objective function and probability constraint.
+    GRBLinExpr objective = 0.0;
+    GRBLinExpr constraint = 0.0;
+    for (unsigned int ii = 0; ii < variables.size(); ii++) {
+      objective += coefficients(ii) * variables[ii];
+      constraint += variables[ii];
+    }
+
+    model.setObjective(objective, GRB_MAXIMIZE);
+    model.addConstraint(constraint == 1.0, "probability");
+
+    // Optimize the model.
+    model.optimize();
+  } catch {}
+
+
   return false;
 }
 
