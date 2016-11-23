@@ -73,7 +73,7 @@ class ExplorerLP {
   double TakeStep(const std::vector<GridPose2D>& trajectory);
 
   // Visualize the current belief state.
-  void Visualize(const std::string& title) const;
+  void Visualize(const std::string& title = "") const;
 
  private:
   // Problem parameters.

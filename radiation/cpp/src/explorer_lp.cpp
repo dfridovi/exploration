@@ -90,6 +90,7 @@ bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) {
     // Create an empty environment and model.
     GRBEnv env = GRBEnv();
     GRBModel model = GRBModel(env);
+    model.getEnv().set(GRB_IntParam_OutputFlag, 0);
 
     // Generate conditional distributions.
     Eigen::MatrixXd pzx;
