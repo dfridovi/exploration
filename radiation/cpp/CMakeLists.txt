@@ -4,6 +4,7 @@ project(radiation C CXX)
 # Build options.
 option(BUILD_TESTS "Build tests" ON)
 option(BUILD_DOCUMENTATION "Build documentation" OFF)
+set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations")
 
 # Add cmake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
