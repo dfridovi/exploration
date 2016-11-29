@@ -186,35 +186,35 @@ void ExplorerLP::Visualize() const {
   glBegin(GL_QUADS);
   for (unsigned int ii = 0; ii < map_.GetNumRows(); ii++) {
     for (unsigned int jj = 0; jj < map_.GetNumCols(); jj++) {
-      glColor3f(static_cast<float>(belief(ii, jj)),
-                static_cast<float>(belief(ii, jj)),
-                static_cast<float>(belief(ii, jj)));
+      glColor3f(static_cast<GLfloat>(belief(ii, jj)),
+                static_cast<GLfloat>(belief(ii, jj)),
+                static_cast<GLfloat>(belief(ii, jj)));
 
       // Bottom left, bottom right, top right, top left.
-      glVertex2f(static_cast<float>(ii), static_cast<float>(jj));
-      glVertex2f(static_cast<float>(ii) + 1.0, static_cast<float>(jj));
-      glVertex2f(static_cast<float>(ii) + 1.0, static_cast<float>(jj) + 1.0);
-      glVertex2f(static_cast<float>(ii), static_cast<float>(jj) + 1.0);
+      glVertex2f(static_cast<GLfloat>(ii), static_cast<GLfloat>(jj));
+      glVertex2f(static_cast<GLfloat>(ii) + 1.0, static_cast<GLfloat>(jj));
+      glVertex2f(static_cast<GLfloat>(ii) + 1.0, static_cast<GLfloat>(jj) + 1.0);
+      glVertex2f(static_cast<GLfloat>(ii), static_cast<GLfloat>(jj) + 1.0);
     }
   }
   glEnd();
 
-  const float robot_x = static_cast<float>(pose_.GetX());
-  const float robot_y = static_cast<float>(pose_.GetY());
-  const float robot_a = static_cast<float>(pose_.GetAngle());
+  const GLfloat robot_x = static_cast<GLfloat>(pose_.GetX());
+  const GLfloat robot_y = static_cast<GLfloat>(pose_.GetY());
+  const GLfloat robot_a = static_cast<GLfloat>(pose_.GetAngle());
   const unsigned int kNumVertices = 100;
 
   // Display the field of view as a triangle fan.
-  const float kFovRadius =
-    sqrt(static_cast<float>(map_.GetNumRows() * map_.GetNumRows() +
+  const GLfloat kFovRadius =
+    sqrt(static_cast<GLfloat>(map_.GetNumRows() * map_.GetNumRows() +
                             map_.GetNumCols() * map_.GetNumCols()));
 
   glBegin(GL_TRIANGLE_FAN);
   glColor4f(0.0, 0.2, 0.8, 0.25);
   glVertex2f(robot_x, robot_y);
   for (unsigned int ii = 0; ii <= kNumVertices; ii++) {
-    const float angle = robot_a + fov_ *
-      (-0.5 + static_cast<float>(ii) / static_cast<float>(kNumVertices));
+    const GLfloat angle = robot_a + fov_ *
+      (-0.5 + static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices));
     glVertex2f(robot_x + kFovRadius * cos(angle),
                robot_y + kFovRadius * sin(angle));
   }
@@ -222,13 +222,13 @@ void ExplorerLP::Visualize() const {
 
   // Display a circle at the robot's current position. No circle primitive, so
   // use a polygon with a bunch of vertices.
-  const float kRobotRadius = 0.5;
+  const GLfloat kRobotRadius = 0.5;
 
   glBegin(GL_POLYGON);
   glColor4f(0.0, 0.8, 0.2, 0.75);
   for (unsigned int ii = 0; ii < kNumVertices; ii++) {
-    const float angle =
-      2.0 * M_PI * static_cast<float>(ii) / static_cast<float>(kNumVertices);
+    const GLfloat angle =
+      2.0 * M_PI * static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices);
     glVertex2f(robot_x + kRobotRadius * cos(angle),
                robot_y + kRobotRadius * sin(angle));
   }

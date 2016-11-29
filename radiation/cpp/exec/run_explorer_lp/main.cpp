@@ -44,7 +44,7 @@
 #include <iostream>
 #include <math.h>
 
-DEFINE_int32(refresh_rate, 30, "Refresh rate in milliseconds.");
+DEFINE_int32(refresh_rate, 1000, "Refresh rate in milliseconds.");
 DEFINE_bool(iterate_forever, false, "Iterate ad inifinitum?");
 DEFINE_int32(num_iterations, 10, "Number of iterations to run exploration.");
 DEFINE_int32(num_rows, 5, "Number of rows in the grid.");
@@ -79,15 +79,44 @@ void Timer(int value) {
   glutTimerFunc(FLAGS_refresh_rate, Timer, 0);
 }
 
+// Reshape the window to maintain the correct aspect ratio.
+void Reshape(GLsizei width, GLsizei height) {
+  if (height == 0)
+    height = 1;
+
+  // Compute aspect ratio fo the new window.
+  const GLfloat kAspectRatio =
+    static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
+
+  // Set the viewport to cover the new window.
+  glViewport(0, 0, width, height);
+
+  // Set the clipping area to be a square in the positive quadrant.
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  if (width >= height) {
+    // Larger width than height.
+    gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows) * kAspectRatio,
+               0.0, static_cast<GLfloat>(FLAGS_num_cols));
+  } else {
+    // Larger height than width.
+    gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows),
+               0.0, static_cast<GLfloat>(FLAGS_num_cols) / kAspectRatio);
+  }
+}
+
 // Run a single iteration of the exploration algorithm.
 void SingleIteration() {
+  std::cout << "iteration " << step_count << std::endl << std::flush;
+
   // Return right away if we have exceeded the max number of iterations.
-  if (!iterate_forever && step_count < FLAGS_num_iterations)
+  if (!FLAGS_iterate_forever && step_count >= FLAGS_num_iterations)
     return;
 
   // Plan ahead.
   std::vector<GridPose2D> trajectory;
   if (!explorer.PlanAhead(trajectory)) {
+    std::cout << "error in exploration" << std::endl << std::flush;
     VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
     return;
   }
@@ -95,10 +124,14 @@ void SingleIteration() {
   // Take a step.
   const double entropy = explorer.TakeStep(trajectory);
   step_count++;
-  std::printf("Entropy after step %u is %f.\n", step_count, entropy);
+  std::cout << "Entropy after step " << step_count <<
+    " is " << entropy << "." << std::endl << std::flush;
 
   // Visualize.
   explorer.Visualize();
+
+  // Swap buffers.
+  glutSwapBuffers();
 }
 
 // Set everything up and go!
@@ -113,6 +146,7 @@ int main(int argc, char** argv) {
   GridPose2D::SetNumRows(FLAGS_num_rows);
   GridPose2D::SetNumCols(FLAGS_num_cols);
   Movement2D::SetAngularStep(FLAGS_angular_step);
+  std::cout << "hi there" << std::endl << std::flush;
 
   // Set up OpenGL window.
   glutInit(&argc, argv);
