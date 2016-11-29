@@ -233,12 +233,28 @@ void ExplorerLP::Visualize() const {
   glBegin(GL_POLYGON);
   glColor4f(0.0, 0.8, 0.2, 0.5);
   for (unsigned int ii = 0; ii < kNumVertices; ii++) {
-    const GLfloat angle =
-      2.0 * M_PI * static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices);
+    const GLfloat angle = 2.0 * M_PI *
+      static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices);
     glVertex2f(robot_x + kRobotRadius * cos(angle),
                robot_y + kRobotRadius * sin(angle));
   }
   glEnd();
+
+  // Display a circle at the location of each source.
+  const GLfloat kSourceRadius = 0.2;
+
+  for (const auto& source : sources_) {
+    glBegin(GL_POLYGON);
+    glColor4f(0.8, 0.0, 0.2, 0.5);
+
+    for (unsigned int ii = 0; ii < kNumVertices; ii++) {
+      const GLfloat angle = 2.0 * M_PI *
+        static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices);
+      glVertex2f(source.GetX() + kSourceRadius * cos(angle),
+                 source.GetY() + kSourceRadius * sin(angle));
+    }
+    glEnd();
+  }
 }
 
 } // namespace radiation

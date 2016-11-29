@@ -50,11 +50,11 @@ DEFINE_int32(num_iterations, 10, "Number of iterations to run exploration.");
 DEFINE_int32(num_rows, 5, "Number of rows in the grid.");
 DEFINE_int32(num_cols, 5, "Number of columns in the grid.");
 DEFINE_int32(num_sources, 2, "Number of sources on the grid.");
-DEFINE_int32(num_steps, 3, "Number of steps in each trajectory.");
-DEFINE_int32(num_samples, 10000,
+DEFINE_int32(num_steps, 4, "Number of steps in each trajectory.");
+DEFINE_int32(num_samples, 20000,
               "Number of samples used to approximate distributions.");
-DEFINE_double(angular_step, 0.23 * M_PI, "Angular step size.");
-DEFINE_double(fov, 0.35 * M_PI, "Sensor field of view.");
+DEFINE_double(angular_step, 0.07 * M_PI, "Angular step size.");
+DEFINE_double(fov, 0.1 * M_PI, "Sensor field of view.");
 DEFINE_double(regularizer, 1.0, "Regularization parameter for belief update.");
 
 using namespace radiation;
@@ -111,7 +111,10 @@ void Reshape(GLsizei width, GLsizei height) {
 
 // Run a single iteration of the exploration algorithm.
 void SingleIteration() {
-  if (FLAGS_iterate_forever || step_count < FLAGS_num_iterations) {
+  // Only plan ahead if we haven't exceeded the step count and the entropy
+  // is still large.
+  if ((FLAGS_iterate_forever || step_count < FLAGS_num_iterations) &&
+      (explorer.Entropy() > 1.0)) {
     // Plan ahead.
     std::vector<GridPose2D> trajectory;
     if (!explorer.PlanAhead(trajectory)) {
