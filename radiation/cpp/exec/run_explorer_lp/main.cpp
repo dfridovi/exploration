@@ -98,8 +98,7 @@ void SingleIteration() {
   std::printf("Entropy after step %u is %f.\n", step_count, entropy);
 
   // Visualize.
-  explorer.Visualize("Step " + std::tostring(step_count) +
-                     ", entropy =  " + std::tostring(entropy));
+  explorer.Visualize();
 }
 
 // Set everything up and go!
@@ -120,8 +119,7 @@ int main(int argc, char** argv) {
   glutInitDisplayMode(GLUT_DOUBLE);
   glutInitWindowSize(640, 480);
   glutInitWindowPosition(50, 50);
-  glutCreateWindow("Initial map, entropy = " +
-                   std::tostring(explorer.Entropy()));
+  glutCreateWindow("ExplorerLP");
   glutDisplayFunc(SingleIteration);
   glutReshapeFunc(Reshape);
   glutTimerFunc(0, Timer, 0);

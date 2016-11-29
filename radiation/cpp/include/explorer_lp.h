@@ -76,7 +76,7 @@ class ExplorerLP {
   double Entropy() const;
 
   // Visualize the current belief state.
-  void Visualize(const std::string& title = "") const;
+  void Visualize() const;
 
  private:
   // Problem parameters.

@@ -177,7 +177,7 @@ double ExplorerLP::TakeStep(const std::vector<GridPose2D>& trajectory) {
 double ExplorerLP::Entropy() const { return map_.Entropy(); }
 
 // Visualize the current belief state.
-void ExplorerLP::Visualize(const std::string& title) const {
+void ExplorerLP::Visualize() const {
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Display each grid cell as a GL_QUAD centered at the appropriate location.
@@ -192,11 +192,45 @@ void ExplorerLP::Visualize(const std::string& title) const {
 
       // Bottom left, bottom right, top right, top left.
       glVertex2f(static_cast<float>(ii), static_cast<float>(jj));
-      glVertex2f(static_cast<float>(ii) + 0.5, static_cast<float>(jj) + 0.5);
-
-
-
+      glVertex2f(static_cast<float>(ii) + 1.0, static_cast<float>(jj));
+      glVertex2f(static_cast<float>(ii) + 1.0, static_cast<float>(jj) + 1.0);
+      glVertex2f(static_cast<float>(ii), static_cast<float>(jj) + 1.0);
     }
+  }
+  glEnd();
+
+  const float robot_x = static_cast<float>(pose_.GetX());
+  const float robot_y = static_cast<float>(pose_.GetY());
+  const float robot_a = static_cast<float>(pose_.GetAngle());
+  const unsigned int kNumVertices = 100;
+
+  // Display the field of view as a triangle fan.
+  const float kFovRadius =
+    sqrt(static_cast<float>(map_.GetNumRows() * map_.GetNumRows() +
+                            map_.GetNumCols() * map_.GetNumCols()));
+
+  glBegin(GL_TRIANGLE_FAN);
+  glColor4f(0.0, 0.2, 0.8, 0.25);
+  glVertex2f(robot_x, robot_y);
+  for (unsigned int ii = 0; ii <= kNumVertices; ii++) {
+    const float angle = robot_a + fov_ *
+      (-0.5 + static_cast<float>(ii) / static_cast<float>(kNumVertices));
+    glVertex2f(robot_x + kFovRadius * cos(angle),
+               robot_y + kFovRadius * sin(angle));
+  }
+  glEnd();
+
+  // Display a circle at the robot's current position. No circle primitive, so
+  // use a polygon with a bunch of vertices.
+  const float kRobotRadius = 0.5;
+
+  glBegin(GL_POLYGON);
+  glColor4f(0.0, 0.8, 0.2, 0.75);
+  for (unsigned int ii = 0; ii < kNumVertices; ii++) {
+    const float angle =
+      2.0 * M_PI * static_cast<float>(ii) / static_cast<float>(kNumVertices);
+    glVertex2f(robot_x + kRobotRadius * cos(angle),
+               robot_y + kRobotRadius * sin(angle));
   }
   glEnd();
 }
