@@ -59,10 +59,8 @@ DEFINE_double(regularizer, 1.0, "Regularization parameter for belief update.");
 
 using namespace radiation;
 
-// Create a globally-defined ExplorerLP
-ExplorerLP explorer(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
-                    FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
-                    FLAGS_num_samples);
+// Create a globally-defined ExplorerLP.
+ExplorerLP* explorer = NULL;
 
 // Create a globally-defined step counter.
 unsigned int step_count = 0;
@@ -111,27 +109,29 @@ void Reshape(GLsizei width, GLsizei height) {
 
 // Run a single iteration of the exploration algorithm.
 void SingleIteration() {
+  CHECK_NOTNULL(explorer);
+
   // Only plan ahead if we haven't exceeded the step count and the entropy
   // is still large.
   if ((FLAGS_iterate_forever || step_count < FLAGS_num_iterations) &&
-      (explorer.Entropy() > 1.0)) {
+      (explorer->Entropy() > 1.0)) {
     // Plan ahead.
     std::vector<GridPose2D> trajectory;
-    if (!explorer.PlanAhead(trajectory)) {
+    if (!explorer->PlanAhead(trajectory)) {
       std::cout << "error in exploration" << std::endl << std::flush;
       VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
       return;
     }
 
     // Take a step.
-    const double entropy = explorer.TakeStep(trajectory);
+    const double entropy = explorer->TakeStep(trajectory);
     step_count++;
     std::cout << "Entropy after step " << step_count <<
       " is " << entropy << "." << std::endl << std::flush;
   }
 
   // No matter what, visualize.
-  explorer.Visualize();
+  explorer->Visualize();
 
   // Swap buffers.
   glutSwapBuffers();
@@ -150,6 +150,11 @@ int main(int argc, char** argv) {
   GridPose2D::SetNumCols(FLAGS_num_cols);
   Movement2D::SetAngularStep(FLAGS_angular_step);
 
+  // Set ExplorerLP pointer.
+  explorer = new ExplorerLP(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
+                            FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
+                            FLAGS_num_samples);
+
   // Set up OpenGL window.
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE);
@@ -162,5 +167,6 @@ int main(int argc, char** argv) {
   InitGL();
   glutMainLoop();
 
+  delete explorer;
   return 0;
 }
