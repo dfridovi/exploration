@@ -53,8 +53,8 @@ DEFINE_int32(num_sources, 2, "Number of sources on the grid.");
 DEFINE_int32(num_steps, 3, "Number of steps in each trajectory.");
 DEFINE_int32(num_samples, 10000,
               "Number of samples used to approximate distributions.");
-DEFINE_double(angular_step, 0.33 * M_PI, "Angular step size.");
-DEFINE_double(fov, 0.5 * M_PI, "Sensor field of view.");
+DEFINE_double(angular_step, 0.23 * M_PI, "Angular step size.");
+DEFINE_double(fov, 0.35 * M_PI, "Sensor field of view.");
 DEFINE_double(regularizer, 1.0, "Regularization parameter for belief update.");
 
 using namespace radiation;
@@ -71,6 +71,10 @@ unsigned int step_count = 0;
 void InitGL() {
   // Set the "clearing" or background color as black/opaque.
   glClearColor(0.0, 0.0, 0.0, 1.0);
+
+  // Set up alpha blending.
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable( GL_BLEND );
 }
 
 // Timer callback. Re-render at the specified rate.
@@ -107,27 +111,23 @@ void Reshape(GLsizei width, GLsizei height) {
 
 // Run a single iteration of the exploration algorithm.
 void SingleIteration() {
-  std::cout << "iteration " << step_count << std::endl << std::flush;
+  if (FLAGS_iterate_forever || step_count < FLAGS_num_iterations) {
+    // Plan ahead.
+    std::vector<GridPose2D> trajectory;
+    if (!explorer.PlanAhead(trajectory)) {
+      std::cout << "error in exploration" << std::endl << std::flush;
+      VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
+      return;
+    }
 
-  // Return right away if we have exceeded the max number of iterations.
-  if (!FLAGS_iterate_forever && step_count >= FLAGS_num_iterations)
-    return;
-
-  // Plan ahead.
-  std::vector<GridPose2D> trajectory;
-  if (!explorer.PlanAhead(trajectory)) {
-    std::cout << "error in exploration" << std::endl << std::flush;
-    VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
-    return;
+    // Take a step.
+    const double entropy = explorer.TakeStep(trajectory);
+    step_count++;
+    std::cout << "Entropy after step " << step_count <<
+      " is " << entropy << "." << std::endl << std::flush;
   }
 
-  // Take a step.
-  const double entropy = explorer.TakeStep(trajectory);
-  step_count++;
-  std::cout << "Entropy after step " << step_count <<
-    " is " << entropy << "." << std::endl << std::flush;
-
-  // Visualize.
+  // No matter what, visualize.
   explorer.Visualize();
 
   // Swap buffers.
@@ -146,12 +146,11 @@ int main(int argc, char** argv) {
   GridPose2D::SetNumRows(FLAGS_num_rows);
   GridPose2D::SetNumCols(FLAGS_num_cols);
   Movement2D::SetAngularStep(FLAGS_angular_step);
-  std::cout << "hi there" << std::endl << std::flush;
 
   // Set up OpenGL window.
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE);
-  glutInitWindowSize(640, 480);
+  glutInitWindowSize(320, 320);
   glutInitWindowPosition(50, 50);
   glutCreateWindow("ExplorerLP");
   glutDisplayFunc(SingleIteration);

@@ -57,7 +57,7 @@ namespace radiation {
     : x_(x), y_(y), a_(a) {}
   GridPose2D::GridPose2D(unsigned int x, unsigned int y, double a)
     : x_(static_cast<double>(x) + 0.5),
-      y_(static_cast<double>(y)),
+      y_(static_cast<double>(y) + 0.5),
       a_(a) {}
 
   // Static setters.

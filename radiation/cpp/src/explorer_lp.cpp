@@ -180,8 +180,10 @@ double ExplorerLP::Entropy() const { return map_.Entropy(); }
 void ExplorerLP::Visualize() const {
   glClear(GL_COLOR_BUFFER_BIT);
 
-  // Display each grid cell as a GL_QUAD centered at the appropriate location.
+  // Display each grid cell as a GL_QUAD centered at the appropriate location,
+  // with a small 'epsilon' fudge factor between cells.
   const Eigen::MatrixXd belief = map_.GetImmutableBelief();
+  const GLfloat kEpsilon = 0.02;
 
   glBegin(GL_QUADS);
   for (unsigned int ii = 0; ii < map_.GetNumRows(); ii++) {
@@ -191,10 +193,14 @@ void ExplorerLP::Visualize() const {
                 static_cast<GLfloat>(belief(ii, jj)));
 
       // Bottom left, bottom right, top right, top left.
-      glVertex2f(static_cast<GLfloat>(ii), static_cast<GLfloat>(jj));
-      glVertex2f(static_cast<GLfloat>(ii) + 1.0, static_cast<GLfloat>(jj));
-      glVertex2f(static_cast<GLfloat>(ii) + 1.0, static_cast<GLfloat>(jj) + 1.0);
-      glVertex2f(static_cast<GLfloat>(ii), static_cast<GLfloat>(jj) + 1.0);
+      glVertex2f(static_cast<GLfloat>(ii) + kEpsilon,
+                 static_cast<GLfloat>(jj) + kEpsilon);
+      glVertex2f(static_cast<GLfloat>(ii) + 1.0 - kEpsilon,
+                 static_cast<GLfloat>(jj) + kEpsilon);
+      glVertex2f(static_cast<GLfloat>(ii) + 1.0 - kEpsilon,
+                 static_cast<GLfloat>(jj) + 1.0 - kEpsilon);
+      glVertex2f(static_cast<GLfloat>(ii) + kEpsilon,
+                 static_cast<GLfloat>(jj) + 1.0 - kEpsilon);
     }
   }
   glEnd();
@@ -210,7 +216,7 @@ void ExplorerLP::Visualize() const {
                             map_.GetNumCols() * map_.GetNumCols()));
 
   glBegin(GL_TRIANGLE_FAN);
-  glColor4f(0.0, 0.2, 0.8, 0.25);
+  glColor4f(0.0, 0.2, 0.8, 0.2);
   glVertex2f(robot_x, robot_y);
   for (unsigned int ii = 0; ii <= kNumVertices; ii++) {
     const GLfloat angle = robot_a + fov_ *
@@ -225,7 +231,7 @@ void ExplorerLP::Visualize() const {
   const GLfloat kRobotRadius = 0.5;
 
   glBegin(GL_POLYGON);
-  glColor4f(0.0, 0.8, 0.2, 0.75);
+  glColor4f(0.0, 0.8, 0.2, 0.5);
   for (unsigned int ii = 0; ii < kNumVertices; ii++) {
     const GLfloat angle =
       2.0 * M_PI * static_cast<GLfloat>(ii) / static_cast<GLfloat>(kNumVertices);
