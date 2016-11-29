@@ -45,6 +45,7 @@
 
 #include <explorer_lp.h>
 
+#include <GLUT/glut.h>
 #include <glog/logging.h>
 #include <gurobi_c++.h>
 #include <random>
@@ -172,9 +173,32 @@ double ExplorerLP::TakeStep(const std::vector<GridPose2D>& trajectory) {
   return map_.Entropy();
 }
 
+// Compute map entropy.
+double ExplorerLP::Entropy() const { return map_.Entropy(); }
+
 // Visualize the current belief state.
 void ExplorerLP::Visualize(const std::string& title) const {
-  // TODO!
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  // Display each grid cell as a GL_QUAD centered at the appropriate location.
+  const Eigen::MatrixXd belief = map_.GetImmutableBelief();
+
+  glBegin(GL_QUADS);
+  for (unsigned int ii = 0; ii < map_.GetNumRows(); ii++) {
+    for (unsigned int jj = 0; jj < map_.GetNumCols(); jj++) {
+      glColor3f(static_cast<float>(belief(ii, jj)),
+                static_cast<float>(belief(ii, jj)),
+                static_cast<float>(belief(ii, jj)));
+
+      // Bottom left, bottom right, top right, top left.
+      glVertex2f(static_cast<float>(ii), static_cast<float>(jj));
+      glVertex2f(static_cast<float>(ii) + 0.5, static_cast<float>(jj) + 0.5);
+
+
+
+    }
+  }
+  glEnd();
 }
 
 } // namespace radiation

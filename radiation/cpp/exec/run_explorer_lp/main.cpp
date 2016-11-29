@@ -38,11 +38,14 @@
 #include <movement_2d.h>
 #include <grid_pose_2d.h>
 
+#include <GLUT/glut.h>
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 #include <iostream>
 #include <math.h>
 
+DEFINE_int32(refresh_rate, 30, "Refresh rate in milliseconds.");
+DEFINE_bool(iterate_forever, false, "Iterate ad inifinitum?");
 DEFINE_int32(num_iterations, 10, "Number of iterations to run exploration.");
 DEFINE_int32(num_rows, 5, "Number of rows in the grid.");
 DEFINE_int32(num_cols, 5, "Number of columns in the grid.");
@@ -56,6 +59,50 @@ DEFINE_double(regularizer, 1.0, "Regularization parameter for belief update.");
 
 using namespace radiation;
 
+// Create a globally-defined ExplorerLP
+ExplorerLP explorer(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
+                    FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
+                    FLAGS_num_samples);
+
+// Create a globally-defined step counter.
+unsigned int step_count = 0;
+
+// Initialize OpenGL.
+void InitGL() {
+  // Set the "clearing" or background color as black/opaque.
+  glClearColor(0.0, 0.0, 0.0, 1.0);
+}
+
+// Timer callback. Re-render at the specified rate.
+void Timer(int value) {
+  glutPostRedisplay();
+  glutTimerFunc(FLAGS_refresh_rate, Timer, 0);
+}
+
+// Run a single iteration of the exploration algorithm.
+void SingleIteration() {
+  // Return right away if we have exceeded the max number of iterations.
+  if (!iterate_forever && step_count < FLAGS_num_iterations)
+    return;
+
+  // Plan ahead.
+  std::vector<GridPose2D> trajectory;
+  if (!explorer.PlanAhead(trajectory)) {
+    VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
+    return;
+  }
+
+  // Take a step.
+  const double entropy = explorer.TakeStep(trajectory);
+  step_count++;
+  std::printf("Entropy after step %u is %f.\n", step_count, entropy);
+
+  // Visualize.
+  explorer.Visualize("Step " + std::tostring(step_count) +
+                     ", entropy =  " + std::tostring(entropy));
+}
+
+// Set everything up and go!
 int main(int argc, char** argv) {
   // Set up logging.
   google::InitGoogleLogging(argv[0]);
@@ -68,26 +115,18 @@ int main(int argc, char** argv) {
   GridPose2D::SetNumCols(FLAGS_num_cols);
   Movement2D::SetAngularStep(FLAGS_angular_step);
 
-  // Create an explorer.
-  ExplorerLP explorer(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
-                      FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
-                      FLAGS_num_samples);
-
-  // Explore for the specified number of iterations.
-  for (unsigned int ii = 0; ii < FLAGS_num_iterations; ii++) {
-    std::vector<GridPose2D> trajectory;
-    if (!explorer.PlanAhead(trajectory)) {
-      VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
-      continue;
-    }
-
-    // Take a step.
-    const double entropy = explorer.TakeStep(trajectory);
-    std::printf("Entropy after step %u is %f.\n", ii, entropy);
-
-    // Visualize.
-    explorer.Visualize();
-  }
+  // Set up OpenGL window.
+  glutInit(&argc, argv);
+  glutInitDisplayMode(GLUT_DOUBLE);
+  glutInitWindowSize(640, 480);
+  glutInitWindowPosition(50, 50);
+  glutCreateWindow("Initial map, entropy = " +
+                   std::tostring(explorer.Entropy()));
+  glutDisplayFunc(SingleIteration);
+  glutReshapeFunc(Reshape);
+  glutTimerFunc(0, Timer, 0);
+  InitGL();
+  glutMainLoop();
 
   return 0;
 }

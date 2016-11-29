@@ -60,6 +60,10 @@ class GridMap2D {
             unsigned int num_sources, double regularizer);
   ~GridMap2D();
 
+  // Getters.
+  inline unsigned int GetNumRows() const;
+  inline unsigned int GetNumCols() const;
+
   // Generate random sources according to the current belief state.
   bool GenerateSources(std::vector<Source2D>& sources);
 

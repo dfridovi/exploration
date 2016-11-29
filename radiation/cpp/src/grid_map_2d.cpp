@@ -64,6 +64,10 @@ namespace radiation {
     belief_ /= num_rows_ * num_cols_;
   }
 
+  // Getters.
+  unsigned int GridMap2D::GetNumRows() const { return num_rows_; }
+  unsigned int GridMap2D::GetNumCols() const { return num_cols_; }
+
   // Generate random sources according to the current belief state.
   bool GridMap2D::GenerateSources(std::vector<Source2D>& sources) {
     const double total_belief = belief_.sum();

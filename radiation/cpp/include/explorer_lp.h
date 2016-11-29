@@ -72,6 +72,9 @@ class ExplorerLP {
   // Take a step along the given trajectory. Return resulting entropy.
   double TakeStep(const std::vector<GridPose2D>& trajectory);
 
+  // Compute map entropy.
+  double Entropy() const;
+
   // Visualize the current belief state.
   void Visualize(const std::string& title = "") const;
 
