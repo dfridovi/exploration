@@ -235,7 +235,7 @@ TEST(GridMap2D, TestDistributionConvergence) {
   const unsigned int kNumSamples = 100000;
   const double kAngularStep = 0.25 * M_PI;
   const double kFov = 0.2 * M_PI;
-  const double kPrecision = 0.1;
+  const double kPrecision = 0.02;
 
   // Set static variables.
   GridPose2D::SetNumRows(kNumRows);
@@ -255,26 +255,22 @@ TEST(GridMap2D, TestDistributionConvergence) {
   // Create a random initial pose.
   const GridPose2D pose(unif_rows(rng), unif_cols(rng), unif_angle(rng));
 
-  // Generate conditionals twice.
-  Eigen::MatrixXd pzx1, pzx2;
-  Eigen::VectorXd hmz1, hmz2;
+  // Generate conditional entropies twice.
+  Eigen::VectorXd hzx1, hzx2;
   std::vector<unsigned int> trajectory_ids1, trajectory_ids2;
 
-  map.GenerateConditionals(kNumSamples, kNumSteps, pose, kFov,
-                           pzx1, hmz1, trajectory_ids1);
-  map.GenerateConditionals(kNumSamples, kNumSteps, pose, kFov,
-                           pzx2, hmz2, trajectory_ids2);
+  map.GenerateEntropyVector(kNumSamples, kNumSteps, pose, kFov,
+                            hzx1, trajectory_ids1);
+  map.GenerateEntropyVector(kNumSamples, kNumSteps, pose, kFov,
+                            hzx2, trajectory_ids2);
 
   // Check that trajectory ids match. This is a simple check since
   // they are generated from an _ordered_ map.
   EXPECT_EQ(trajectory_ids1.size(), trajectory_ids2.size());
 
   if (trajectory_ids1.size() == trajectory_ids2.size()) {
-    ASSERT_EQ(pzx1.rows(), pzx2.rows());
-    ASSERT_EQ(pzx1.cols(), pzx2.cols());
-    ASSERT_EQ(hmz1.rows(), hmz2.rows());
-    ASSERT_EQ(hmz1.cols(), hmz2.cols());
-    ASSERT_EQ(pzx1.rows(), hmz1.rows());
+    ASSERT_EQ(hzx1.rows(), hzx2.rows());
+    ASSERT_EQ(hzx1.cols(), hzx2.cols());
 
     bool ids_match = true;
     for (unsigned int ii = 0; ii < trajectory_ids1.size(); ii++) {
@@ -283,12 +279,9 @@ TEST(GridMap2D, TestDistributionConvergence) {
     }
 
     if (ids_match) {
-      EXPECT_TRUE(pzx1.isApprox(pzx2, kPrecision));
-      EXPECT_TRUE(hmz1.isApprox(hmz2, kPrecision));
-
-      const Eigen::VectorXd c1 = pzx1.transpose() * hmz1;
-      const Eigen::VectorXd c2 = pzx2.transpose() * hmz2;
-      EXPECT_TRUE(c1.isApprox(c2, kPrecision));
+      EXPECT_LE(sqrt((hzx1 - hzx2).squaredNorm() /
+                     static_cast<double>(hzx1.rows())),
+                kPrecision);
     }
   }
 }

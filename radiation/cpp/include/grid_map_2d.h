@@ -67,13 +67,11 @@ class GridMap2D {
   // Generate random sources according to the current belief state.
   bool GenerateSources(std::vector<Source2D>& sources);
 
-  // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
-  // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
-  // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
-  // is the entropy of M given measurement i, starting from the given pose.
-  void GenerateConditionals(unsigned int num_samples, unsigned int num_steps,
+  // Generate entropy vector [h_{Z|X}], where the i-entry of [h_{Z|X}]
+  // is the entropy of Z given trajectory X = i, starting from the given pose.
+  void GenerateEntropyVector(unsigned int num_samples, unsigned int num_steps,
                             const GridPose2D& pose, double sensor_fov,
-                            Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
+                            Eigen::VectorXd& hzx,
                             std::vector<unsigned int>& trajectory_ids);
 
   // Take a measurement from the given sensor and update belief accordingly.

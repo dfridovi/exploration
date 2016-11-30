@@ -84,76 +84,33 @@ ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
 
 // Plan a new trajectory.
 bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) {
-  // Use GUROBI to set up and solve a linear program. Since GUROBI uses
-  // exceptions to communicate errors, we enclose the entire planner in
-  // a try/catch block.
-  try {
-    // Create an empty environment and model.
-    GRBEnv env = GRBEnv();
-    GRBModel model = GRBModel(env);
-    model.getEnv().set(GRB_IntParam_OutputFlag, 0);
+  // Generate conditional entropy vector.
+  Eigen::VectorXd hzx;
+  std::vector<unsigned int> trajectory_ids;
+  map_.GenerateEntropyVector(num_samples_, num_steps_, pose_, fov_,
+                             hzx, trajectory_ids);
+  CHECK(hzx.rows() == trajectory_ids.size());
 
-    // Generate conditional distributions.
-    Eigen::MatrixXd pzx;
-    Eigen::VectorXd hmz;
-    std::vector<unsigned int> trajectory_ids;
-    map_.GenerateConditionals(num_samples_, num_steps_, pose_, fov_,
-                             pzx, hmz, trajectory_ids);
-
-    // Get vector of objective coefficients.
-    const Eigen::VectorXd coefficients = pzx.transpose() * hmz;
-
-    // Create GUROBI variables.
-    std::vector<GRBVar> variables;
-    for (unsigned int ii = 0; ii < trajectory_ids.size(); ii++) {
-      GRBVar p = model.addVar(0.0, /* lower bound */
-                              1.0, /* upper bound */
-                              0.0, /* objective coefficient */
-                              GRB_CONTINUOUS, /* type */
-                              "p" + std::to_string(ii) /* name */);
-      variables.push_back(p);
+  // Compute the arg max of this conditional entropy vector.
+  double max_value = -1.0;
+  unsigned int trajectory_id = 0;
+  for (unsigned int ii = 0; ii < hzx.rows(); ii++) {
+    if (hzx(ii) > max_value) {
+      max_value = hzx(ii);
+      trajectory_id = trajectory_ids[ii];
     }
-
-    // Set up objective function and probability constraint.
-    GRBLinExpr objective = 0.0;
-    GRBLinExpr constraint = 0.0;
-    for (unsigned int ii = 0; ii < variables.size(); ii++) {
-      objective += coefficients(ii) * variables[ii];
-      constraint += variables[ii];
-    }
-
-    model.setObjective(objective, GRB_MAXIMIZE);
-    model.addConstr(constraint == 1.0, "probability");
-
-    // Optimize the model.
-    model.optimize();
-
-    // Sample from the optimal distribution at random. Choose a random value in
-    // [0.0, 1.0] and step through the distribution until we exceed this value.
-    std::random_device rd;
-    std::default_random_engine rng(rd());
-    std::uniform_real_distribution<double> unif(0.0, 1.0);
-
-    const double random_value = unif(rng);
-    double cdf = 0.0;
-    unsigned int vertex_id = 0;
-    while (cdf < random_value && vertex_id < variables.size())
-      cdf += variables[vertex_id++].get(GRB_DoubleAttr_X);
-
-    const unsigned int trajectory_id = trajectory_ids[--vertex_id];
-
-    // Decode this trajectory id.
-    trajectory.clear();
-    DecodeTrajectory(trajectory_id, num_steps_, pose_, trajectory);
-    return true;
-  } catch (GRBException exception) {
-    VLOG(1) << "Gurobi error code : " << exception.getErrorCode();
-    VLOG(1) << exception.getMessage();
-  } catch (...) {
-    VLOG(1) << "Exception during optimization.";
   }
 
-  return false;
+  // Check that we found a valid trajectory (with non-negative entropy).
+  if (max_value < 0.0) {
+    VLOG(1) << "Could not find a positive conditional entropy trajectory.";
+    return false;
+  }
+
+  // Decode this trajectory id.
+  trajectory.clear();
+  DecodeTrajectory(trajectory_id, num_steps_, pose_, trajectory);
+  return true;
 }
 
 // Take a step along the given trajectory. Return resulting entropy.

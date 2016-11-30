@@ -111,24 +111,17 @@ namespace radiation {
     return false;
   }
 
-  // Generate conditional distribution [P_{Z|X}] and entropy vector [h_{M|Z}],
-  // where the (i, j)-entry of [P_{Z|X}] is the normalized frequency of
-  // observing measurement i given trajectory j, and the i-entry of [h_{M|Z}]
-  // is the entropy of M given measurement i, starting from the given pose.
-  void GridMap2D::GenerateConditionals(
+  // Generate entropy vector [h_{Z|X}], where the i-entry of [h_{Z|X}]
+  // is the entropy of Z given trajectory X = i, starting from the given pose.
+  void GridMap2D::GenerateEntropyVector(
      unsigned int num_samples, unsigned int num_steps, const GridPose2D& pose,
-     double sensor_fov, Eigen::MatrixXd& pzx, Eigen::VectorXd& hmz,
+     double sensor_fov, Eigen::VectorXd& hzx,
      std::vector<unsigned int>& trajectory_ids) {
-    // Compute the number of possible maps and measurements.
+    // Compute the number of possible measurement vectors.
     const unsigned int kNumMeasurements = pow(num_sources_ + 1, num_steps);
-    const unsigned int kNumMaps = pow(num_rows_ * num_cols_, num_steps);
 
     // Create a map to keep track of counts for each trajectory.
     std::map<unsigned int, Eigen::VectorXd> zx_samples;
-
-    // Create an empty matrix to store the joint distribution [P_{M, Z}].
-    Eigen::MatrixXd pzm =
-      Eigen::MatrixXd::Zero(kNumMeasurements, kNumMaps);
 
     // Generate a ton of sampled data.
     for (unsigned int ii = 0; ii < num_samples; ii++) {
@@ -140,8 +133,6 @@ namespace radiation {
         VLOG(1) << "Unable to generate sources. Skipping this sample.";
         continue;
       }
-
-      const unsigned int map_id = EncodeMap(sources, num_rows_, num_cols_);
 
       // Pick a random trajectory starting at the given pose. At each step,
       // take a measurement and record the data.
@@ -163,9 +154,6 @@ namespace radiation {
       const unsigned int measurement_id =
         EncodeMeasurements(measurements, num_sources_);
 
-      // Record this sample in the 'pzm' matrix.
-      pzm(measurement_id, map_id) += 1.0;
-
       // Record this sample in the 'zx_samples' map.
       if (zx_samples.count(trajectory_id) == 0) {
         Eigen::VectorXd counts = Eigen::VectorXd::Zero(kNumMeasurements);
@@ -177,10 +165,11 @@ namespace radiation {
     }
 
     // Convert 'zx_samples' into a matrix joint distribution.
-    pzx.resize(kNumMeasurements, zx_samples.size());
-    pzx = Eigen::MatrixXd::Zero(kNumMeasurements, zx_samples.size());
+    const unsigned int kNumTrajectories = zx_samples.size();
+    Eigen::MatrixXd pzx =
+      Eigen::MatrixXd::Zero(kNumMeasurements, kNumTrajectories);
     trajectory_ids.clear();
-    trajectory_ids.reserve(zx_samples.size());
+    trajectory_ids.reserve(kNumTrajectories);
 
     unsigned int idx = 0;
     for (auto pair = zx_samples.begin(); pair != zx_samples.end(); pair++) {
@@ -188,35 +177,33 @@ namespace radiation {
       pzx.col(idx++) = pair->second;
     }
 
-    // Normalize so that all rows sum to unity in both distributions.
-    for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
-      const double zm_row_sum = pzm.row(ii).sum();
-      if (zm_row_sum < 1.0)
-        VLOG(1) << "Encountered measurement with no support in P_{Z|M}.";
-      else
-        pzm.row(ii) /= zm_row_sum;
-
-      const double zx_row_sum = pzx.row(ii).sum();
-      if (zx_row_sum < 1.0)
-        VLOG(1) << "Encountered measurement with no support in P_{Z|X}.";
-      else
-        pzx.row(ii) /= zx_row_sum;
+    // Normalize so that all columns sum to unity.
+    for (unsigned int jj = 0; jj < kNumTrajectories; jj++) {
+      const double zx_col_sum = pzx.col(jj).sum();
+      if (zx_col_sum < 1.0) {
+        VLOG(1) << "Encountered trajectory with no support in P_{Z|X}.";
+      } else {
+        pzx.col(jj) /= zx_col_sum;
+      }
     }
 
-    // Compute [h_{M|Z}], the conditional entropy vector.
-    hmz.resize(kNumMeasurements);
-    for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
-      hmz(ii) = 0.0;
+    // Compute [h_{Z|X}], the conditional entropy vector.
+    hzx.resize(kNumTrajectories);
+    for (unsigned int jj = 0; jj < kNumTrajectories; jj++) {
+      hzx(jj) = 0.0;
 
-      for (unsigned int jj = 0; jj < kNumMaps; jj++) {
-        const double p = pzm(ii, jj);
+      for (unsigned int ii = 0; ii < kNumMeasurements; ii++) {
+        const double p = pzx(ii, jj);
 
-        // Catch 'p' values near 0 or 1.
-        if (p < 1e-4 || p > 1.0 - 1e-4)
+        // Catch 'p' values near 0 or 1 to avoid numerical issues.
+        if (p < 0.01 || p > 1.0 - 0.01)
           continue;
 
-        hmz(ii) -= p * log(p);
+        hzx(jj) -= p * log(p);
       }
+
+      // Make sure entropies are non-negative.
+      CHECK(hzx(jj) >= 0.0);
     }
   }
 
