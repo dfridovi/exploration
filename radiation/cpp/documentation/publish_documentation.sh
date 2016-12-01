@@ -30,6 +30,7 @@ git push -u origin gh-pages
 
 # Checkout master again and blow away generated docs.
 git checkout master
-git rm ${DOCUMENTATION_PATH}/html/ ${DOCUMENTATION_PATH}/latex/
+git reset HEAD~1
+rm -r ${DOCUMENTATION_PATH}/html/ ${DOCUMENTATION_PATH}/latex/
 
 echo "-- Successfully updated documentation!"
