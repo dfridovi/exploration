@@ -37,36 +37,38 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Exploration on a 2D grid. Tries to find the specified number of radiation
-// sources (located at random lattice points) by choosing trajectories of
-// the specified number of steps that maximize mutual information between
-// simulated measurements and the true map.
+// sources (located at random lattice points) by following a random walk.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_EXPLORER_LP_H
-#define RADIATION_EXPLORER_LP_H
+#include <explorer_rw.h>
 
-#include <explorer_2d.h>
+#include <glog/logging.h>
+#include <random>
+#include <string>
+#include <math.h>
 
 namespace radiation {
 
-class ExplorerLP : public Explorer2D {
- public:
-  ExplorerLP(unsigned int num_rows, unsigned int num_cols,
-             unsigned int num_sources, double regularizer,
-             unsigned int num_steps, double fov,
-             unsigned int num_samples);
-  ~ExplorerLP();
+// Constructor/destructor.
+ExplorerRW::~ExplorerRW() {}
+ExplorerRW::ExplorerRW(unsigned int num_rows, unsigned int num_cols,
+                       unsigned int num_sources, double regularizer,
+                       double fov)
+  : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov) {}
 
-  // Plan a new trajectory. Implement the required pure virtual method.
-  bool PlanAhead(std::vector<GridPose2D>& trajectory);
+// Plan a new trajectory. Take a completely random (legal) step.
+bool ExplorerRW::PlanAhead(std::vector<GridPose2D>& trajectory) {
+  trajectory.clear();
 
- private:
-  // Extra problem parameters (the rest are in the virtual class).
-  unsigned int num_steps_;
-  unsigned int num_samples_;
- }; // class ExplorerLP
+  // Pick random movements until one is legal.
+  GridPose2D next_pose = pose_;
+  while (!next_pose.MoveBy(Movement2D()));
+
+  // Store this next pose.
+  trajectory.push_back(next_pose);
+
+  return true;
+}
 
 } // namespace radiation
-
-#endif

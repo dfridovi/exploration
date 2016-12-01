@@ -37,35 +37,27 @@
 ///////////////////////////////////////////////////////////////////////////////
 //
 // Exploration on a 2D grid. Tries to find the specified number of radiation
-// sources (located at random lattice points) by choosing trajectories of
-// the specified number of steps that maximize mutual information between
-// simulated measurements and the true map.
+// sources (located at random lattice points) by following a random walk.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_EXPLORER_LP_H
-#define RADIATION_EXPLORER_LP_H
+#ifndef RADIATION_EXPLORER_RW_H
+#define RADIATION_EXPLORER_RW_H
 
 #include <explorer_2d.h>
 
 namespace radiation {
 
-class ExplorerLP : public Explorer2D {
+class ExplorerRW : public Explorer2D {
  public:
-  ExplorerLP(unsigned int num_rows, unsigned int num_cols,
+  ExplorerRW(unsigned int num_rows, unsigned int num_cols,
              unsigned int num_sources, double regularizer,
-             unsigned int num_steps, double fov,
-             unsigned int num_samples);
-  ~ExplorerLP();
+             double fov);
+  ~ExplorerRW();
 
   // Plan a new trajectory. Implement the required pure virtual method.
   bool PlanAhead(std::vector<GridPose2D>& trajectory);
-
- private:
-  // Extra problem parameters (the rest are in the virtual class).
-  unsigned int num_steps_;
-  unsigned int num_samples_;
- }; // class ExplorerLP
+}; // class ExplorerRW
 
 } // namespace radiation
 

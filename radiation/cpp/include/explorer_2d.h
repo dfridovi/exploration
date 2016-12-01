@@ -36,36 +36,58 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 //
-// Exploration on a 2D grid. Tries to find the specified number of radiation
-// sources (located at random lattice points) by choosing trajectories of
-// the specified number of steps that maximize mutual information between
-// simulated measurements and the true map.
+// Exploration on a 2D grid. All explorers will inherit from this class, which
+// provides basic functionality like taking steps along trajectories,
+// computing entropy, and visualization.
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#ifndef RADIATION_EXPLORER_LP_H
-#define RADIATION_EXPLORER_LP_H
+#ifndef RADIATION_EXPLORER_2D_H
+#define RADIATION_EXPLORER_2D_H
 
-#include <explorer_2d.h>
+#include <source_2d.h>
+#include <sensor_2d.h>
+#include <grid_map_2d.h>
+#include <grid_pose_2d.h>
+#include <movement_2d.h>
+#include <encoding.h>
+
+#include <Eigen/Core>
+#include <vector>
 
 namespace radiation {
 
-class ExplorerLP : public Explorer2D {
+class Explorer2D {
  public:
-  ExplorerLP(unsigned int num_rows, unsigned int num_cols,
+  Explorer2D(unsigned int num_rows, unsigned int num_cols,
              unsigned int num_sources, double regularizer,
-             unsigned int num_steps, double fov,
-             unsigned int num_samples);
-  ~ExplorerLP();
+             double fov);
+  virtual ~Explorer2D();
 
-  // Plan a new trajectory. Implement the required pure virtual method.
-  bool PlanAhead(std::vector<GridPose2D>& trajectory);
+  // Plan a new trajectory. Must implement this in all derived classes.
+  virtual bool PlanAhead(std::vector<GridPose2D>& trajectory) = 0;
 
- private:
-  // Extra problem parameters (the rest are in the virtual class).
-  unsigned int num_steps_;
-  unsigned int num_samples_;
- }; // class ExplorerLP
+  // Take a step along the given trajectory. Return resulting entropy.
+  double TakeStep(const std::vector<GridPose2D>& trajectory);
+
+  // Compute map entropy.
+  double Entropy() const;
+
+  // Visualize the current belief state.
+  void Visualize() const;
+
+ protected:
+  // Problem parameters.
+  double fov_;
+
+  // Map, pose, and sources.
+  GridMap2D map_;
+  GridPose2D pose_;
+  std::vector<Source2D> sources_;
+
+  // List of past poses.
+  std::vector<GridPose2D> past_poses_;
+}; // class Explorer2D
 
 } // namespace radiation
 
