@@ -10,6 +10,10 @@ CHANGESET=$(git rev-parse --verify HEAD)
 # Make documentation.
 doxygen Doxyfile
 
+# Make sure branches are up to date.
+git remote set-branches --add origin gh-pages
+git fetch origin
+
 # Commit documentation in master.
 cd ../../..
 git add ${DOCUMENTATION_PATH}
