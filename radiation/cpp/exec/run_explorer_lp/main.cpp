@@ -118,7 +118,6 @@ void SingleIteration() {
     // Plan ahead.
     std::vector<GridPose2D> trajectory;
     if (!explorer->PlanAhead(trajectory)) {
-      std::cout << "error in exploration" << std::endl << std::flush;
       VLOG(1) << "Explorer encountered an error. Skipping this iteration.";
       return;
     }
