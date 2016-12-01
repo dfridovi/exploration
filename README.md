@@ -76,3 +76,6 @@ To the extent that it makes sense, all parameters are accessible from the comman
 ```
 ./run_explorer_lp --num_iterations=100
 ```
+
+## API documentation
+We use Doxygen to auto-generate web-based [documentation](https://dfridovi.github.io/exploration/radiation/cpp/documentation/html/). Although we do not follow the Doxygen guidelines for writing comments, auto-generation still seems to do a fairly reasonable job.
