@@ -2,6 +2,9 @@
 radiation/cpp/build/
 radiation/cpp/bin/
 
+# Resources.
+radiation/cpp/resources/
+
 # Figures.
 */figures/
 
