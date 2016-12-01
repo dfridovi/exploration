@@ -1,0 +1,57 @@
+\hypertarget{classradiation_1_1_explorer2_d}{}\section{radiation\+:\+:Explorer2D Class Reference}
+\label{classradiation_1_1_explorer2_d}\index{radiation\+::\+Explorer2D@{radiation\+::\+Explorer2D}}
+Inheritance diagram for radiation\+:\+:Explorer2D\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classradiation_1_1_explorer2_d}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_ad16e982f1455a8813c02e4efbbfbdc29}{}\label{classradiation_1_1_explorer2_d_ad16e982f1455a8813c02e4efbbfbdc29} 
+{\bfseries Explorer2D} (unsigned int num\+\_\+rows, unsigned int num\+\_\+cols, unsigned int num\+\_\+sources, double regularizer, double fov)
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_a383dd22050fca3ee0bd47f746f571189}{}\label{classradiation_1_1_explorer2_d_a383dd22050fca3ee0bd47f746f571189} 
+virtual bool {\bfseries Plan\+Ahead} (std\+::vector$<$ \hyperlink{classradiation_1_1_grid_pose2_d}{Grid\+Pose2D} $>$ \&trajectory)=0
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_a406e0a334d57aa05cf1a37bcd4b1fcec}{}\label{classradiation_1_1_explorer2_d_a406e0a334d57aa05cf1a37bcd4b1fcec} 
+double {\bfseries Take\+Step} (const std\+::vector$<$ \hyperlink{classradiation_1_1_grid_pose2_d}{Grid\+Pose2D} $>$ \&trajectory)
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_ac78860771fe00720a8024ef06a1b13b3}{}\label{classradiation_1_1_explorer2_d_ac78860771fe00720a8024ef06a1b13b3} 
+double {\bfseries Entropy} () const
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_a8eaf1135c2d720ac185b4afbb852feee}{}\label{classradiation_1_1_explorer2_d_a8eaf1135c2d720ac185b4afbb852feee} 
+void {\bfseries Visualize} () const
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_a67746d1bf33ea4a0f9d5794e490a9d40}{}\label{classradiation_1_1_explorer2_d_a67746d1bf33ea4a0f9d5794e490a9d40} 
+double {\bfseries fov\+\_\+}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_ad9d295085a98c134f54fc2acf9f6c3b9}{}\label{classradiation_1_1_explorer2_d_ad9d295085a98c134f54fc2acf9f6c3b9} 
+\hyperlink{classradiation_1_1_grid_map2_d}{Grid\+Map2D} {\bfseries map\+\_\+}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_ad178dd47cb8778f1c99a7a600d5ca625}{}\label{classradiation_1_1_explorer2_d_ad178dd47cb8778f1c99a7a600d5ca625} 
+\hyperlink{classradiation_1_1_grid_pose2_d}{Grid\+Pose2D} {\bfseries pose\+\_\+}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_a89003d6709bf9d0f5b09bc561e1d50ce}{}\label{classradiation_1_1_explorer2_d_a89003d6709bf9d0f5b09bc561e1d50ce} 
+std\+::vector$<$ \hyperlink{classradiation_1_1_source2_d}{Source2D} $>$ {\bfseries sources\+\_\+}
+\item 
+\hypertarget{classradiation_1_1_explorer2_d_ae221c334df98e0676a49ab678124749e}{}\label{classradiation_1_1_explorer2_d_ae221c334df98e0676a49ab678124749e} 
+std\+::vector$<$ \hyperlink{classradiation_1_1_grid_pose2_d}{Grid\+Pose2D} $>$ {\bfseries past\+\_\+poses\+\_\+}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+
+
+Definition at line 60 of file explorer\+\_\+2d.\+h.
+
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+/\+Users/davidfridovichkeil/\+Documents/\+Developer/exploration/radiation/cpp/include/explorer\+\_\+2d.\+h\item 
+/\+Users/davidfridovichkeil/\+Documents/\+Developer/exploration/radiation/cpp/src/explorer\+\_\+2d.\+cpp\end{DoxyCompactItemize}
