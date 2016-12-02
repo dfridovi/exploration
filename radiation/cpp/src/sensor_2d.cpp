@@ -97,7 +97,7 @@ namespace radiation {
     double norm = sqrt(dx * dx + dy * dy);
 
     if (norm < 1e-8)
-      return true;
+      return false;
 
     dx /= norm;
     dy /= norm;
