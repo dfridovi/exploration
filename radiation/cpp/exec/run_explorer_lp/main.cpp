@@ -86,9 +86,11 @@ void Reshape(GLsizei width, GLsizei height) {
   if (height == 0)
     height = 1;
 
-  // Compute aspect ratio fo the new window.
-  const GLfloat kAspectRatio =
+  // Compute aspect ratio fo the new window and for the grid.
+  const GLfloat kWindowRatio =
     static_cast<GLfloat>(width) / static_cast<GLfloat>(height);
+  const GLfloat kGridRatio =
+    static_cast<GLfloat>(FLAGS_num_rows) / static_cast<GLfloat>(FLAGS_num_cols);
 
   // Set the viewport to cover the new window.
   glViewport(0, 0, width, height);
@@ -96,14 +98,33 @@ void Reshape(GLsizei width, GLsizei height) {
   // Set the clipping area to be a square in the positive quadrant.
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+
   if (width >= height) {
-    // Larger width than height.
-    gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows) * kAspectRatio,
-               0.0, static_cast<GLfloat>(FLAGS_num_cols));
+    // Larger window width than height.
+    if (kGridRatio >= kWindowRatio) {
+      // Grid is wider than window.
+      gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows),
+                 0.0, (static_cast<GLfloat>(FLAGS_num_cols) *
+                       kGridRatio / kWindowRatio));
+    } else {
+      // Window is wider than grid.
+      gluOrtho2D(0.0, (static_cast<GLfloat>(FLAGS_num_rows) *
+                       kWindowRatio / kGridRatio),
+                 0.0, static_cast<GLfloat>(FLAGS_num_cols));
+    }
   } else {
     // Larger height than width.
-    gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows),
-               0.0, static_cast<GLfloat>(FLAGS_num_cols) / kAspectRatio);
+    if (kGridRatio <= kWindowRatio) {
+      // Grid is narrower than window.
+      gluOrtho2D(0.0, (static_cast<GLfloat>(FLAGS_num_rows) *
+                       kWindowRatio / kGridRatio),
+                 0.0, static_cast<GLfloat>(FLAGS_num_cols));
+    } else {
+      // Window is narrower than grid.
+      gluOrtho2D(0.0, static_cast<GLfloat>(FLAGS_num_rows),
+                 0.0, (static_cast<GLfloat>(FLAGS_num_cols) *
+                       kGridRatio / kWindowRatio));
+    }
   }
 }
 
