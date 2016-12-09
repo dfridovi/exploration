@@ -34,6 +34,6 @@ include_directories(SYSTEM ${GLOG_INCLUDE_DIRS})
 list(APPEND radiation_LIBRARIES ${GLOG_LIBRARIES})
 
 # Find Gurobi.
-include("cmake/Modules/FindGurobi.cmake")
-include_directories(SYSTEM ${GUROBI_INCLUDE_DIRS})
-list(APPEND radiation_LIBRARIES ${GUROBI_LIBRARIES})
+#include("cmake/Modules/FindGurobi.cmake")
+#include_directories(SYSTEM ${GUROBI_INCLUDE_DIRS})
+#list(APPEND radiation_LIBRARIES ${GUROBI_LIBRARIES})
