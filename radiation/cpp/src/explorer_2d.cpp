@@ -44,11 +44,18 @@
 
 #include <explorer_2d.h>
 
-#include <glut/glut.h>
 #include <glog/logging.h>
 #include <random>
 #include <string>
 #include <math.h>
+
+#ifdef SYSTEM_OSX
+#include <GLUT/glut.h>
+#endif
+
+#ifdef SYSTEM_LINUX
+#include <GL/glut.h>
+#endif
 
 namespace radiation {
 

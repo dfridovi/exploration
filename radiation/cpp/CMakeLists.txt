@@ -6,6 +6,15 @@ option(BUILD_TESTS "Build tests" ON)
 option(BUILD_DOCUMENTATION "Build documentation" OFF)
 set(CMAKE_CXX_FLAGS "-Wno-deprecated-declarations")
 
+# Extra variables.
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  add_definitions(-DSYSTEM_OSX)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  add_definitions(-DSYSTEM_LINUX)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 # Add cmake modules.
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/Modules)
 message("Cmake module path: ${CMAKE_MODULE_PATH}")
