@@ -64,7 +64,7 @@ before_script:
   - cmake ..
 
 script:
-  - make -j4
+  - make -j1
   - ./run_tests
 
 #after_success:
