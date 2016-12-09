@@ -53,12 +53,12 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo make install; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then cd ../..; fi
 
-  # Configure and make Berkeley SfM.
+  # Configure and make Exploration.
   - cd radiation/cpp
   - mkdir bin
   - mkdir build
   - cd build
-  - cmake -DCMAKE_BUILD_TYPE=Release ..
+  - cmake ..
 
 script:
   - make -j4
