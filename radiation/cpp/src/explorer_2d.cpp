@@ -44,7 +44,7 @@
 
 #include <explorer_2d.h>
 
-#include <GLUT/glut.h>
+#include <glut/glut.h>
 #include <glog/logging.h>
 #include <random>
 #include <string>
