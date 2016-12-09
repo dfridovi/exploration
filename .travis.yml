@@ -33,8 +33,7 @@ install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo update-alternatives --config gcc; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo update-alternatives --config g++; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install freeglut3 freeglut3-dev; fi
-    - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install binutils-gold; fi
-
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install binutils-gold; fi
 
 before_script:
   # Get Eigen. The apt-get version on 12.04 is too old; we need at least 3.1.0.
