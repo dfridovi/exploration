@@ -52,7 +52,15 @@ int main(int argc, char** argv) {
  * Draw Simple 2D colored Shapes: quad, triangle and polygon.
  */
 //#include <windows.h>  // for MS Windows
-#include <GLUT/glut.h>  // GLUT, include glu.h and gl.h
+//#include <GLUT/glut.h>  // GLUT, include glu.h and gl.h
+
+#ifdef SYSTEM_OSX
+#include <GLUT/glut.h>
+#endif
+
+#ifdef SYSTEM_LINUX
+#include <GL/glut.h>
+#endif
 
 // Global variable
 GLfloat angle = 0.0f;  // Current rotational angle of the shapes
