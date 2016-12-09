@@ -38,11 +38,18 @@
 #include <movement_2d.h>
 #include <grid_pose_2d.h>
 
-#include <GLUT/glut.h>
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 #include <iostream>
 #include <math.h>
+
+#ifdef SYSTEM_OSX
+#include <GLUT/glut.h>
+#endif
+
+#ifdef SYSTEM_LINUX
+#include <GL/glut.h>
+#endif
 
 DEFINE_int32(refresh_rate, 1000, "Refresh rate in milliseconds.");
 DEFINE_bool(iterate_forever, false, "Iterate ad inifinitum?");

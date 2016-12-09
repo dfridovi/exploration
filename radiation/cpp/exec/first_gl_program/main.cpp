@@ -5,7 +5,16 @@
  * To compile with -lfreeglut -lglu32 -lopengl32
  */
 //#include <windows.h>  // for MS Windows
-#include <GLUT/glut.h>  // GLUT, include glu.h and gl.h
+//#include <GLUT/glut.h>  // GLUT, include glu.h and gl.h
+
+#ifdef SYSTEM_OSX
+#include <GLUT/glut.h>
+#endif
+
+#ifdef SYSTEM_LINUX
+#include <GL/glut.h>
+#endif
+
 
 /* Handler for window-repaint event. Call back when the window first appears and
    whenever the window needs to be re-painted. */
