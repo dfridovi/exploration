@@ -219,9 +219,9 @@ TEST(GridMap2D, TestConvergenceMultipleSources) {
       }
 
       if (has_source)
-        EXPECT_GE(belief(ii, jj), 1.0 - 1e-4);
+        EXPECT_GE(belief(ii, jj), 1.0 - 1e-3);
       else
-        EXPECT_LE(belief(ii, jj), 1e-4);
+        EXPECT_LE(belief(ii, jj), 1e-3);
     }
   }
 }
