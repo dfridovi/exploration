@@ -170,7 +170,7 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
 
   // Parse flags.
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
+  google::ParseCommandLineFlags(&argc, &argv, true);
 
   // Set static variables.
   GridPose2D::SetNumRows(FLAGS_num_rows);
