@@ -59,14 +59,14 @@ namespace radiation {
 // large number of trials. Performance is measured as total entropy
 // over all iterations, averaged over trials.
 TEST(ExplorerLP, TestVsRandomWalk) {
-  const unsigned int kNumRows = 5;
-  const unsigned int kNumCols = 5;
+  const unsigned int kNumRows = 1;
+  const unsigned int kNumCols = 20;
   const unsigned int kNumSources = 1;
   const unsigned int kNumSteps = 3;
   const unsigned int kNumSamples = 10000;
   const double kRegularizer = 1.0;
   const unsigned int kNumIterations = 3;
-  const unsigned int kNumTrials = 20;
+  const unsigned int kNumTrials = 10;
   const double kAngularStep = 0.07 * M_PI;
   const double kFov = 0.1 * M_PI;
 
