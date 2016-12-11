@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
   glutInitDisplayMode(GLUT_DOUBLE);
   glutInitWindowSize(320, 320);
   glutInitWindowPosition(50, 50);
-  glutCreateWindow("ExplorerLP");
+  glutCreateWindow("ExplorerRW");
   glutDisplayFunc(SingleIteration);
   glutReshapeFunc(Reshape);
   glutTimerFunc(0, Timer, 0);
