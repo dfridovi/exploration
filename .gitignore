@@ -7,6 +7,9 @@ radiation/cpp/resources/
 
 # Figures.
 */figures/
+*.eps
+*.jpg
+*.png
 
 # Compiled object files
 *.slo
