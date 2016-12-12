@@ -54,6 +54,11 @@ class ExplorerLP : public Explorer2D {
  public:
   ExplorerLP(unsigned int num_rows, unsigned int num_cols,
              unsigned int num_sources, double regularizer,
+             unsigned int num_steps, double fov, unsigned int num_samples,
+             const std::vector<Source2D>& sources,
+             const GridPose2D& initial_pose);
+  ExplorerLP(unsigned int num_rows, unsigned int num_cols,
+             unsigned int num_sources, double regularizer,
              unsigned int num_steps, double fov,
              unsigned int num_samples);
   ~ExplorerLP();

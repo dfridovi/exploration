@@ -61,6 +61,10 @@ class Explorer2D {
  public:
   Explorer2D(unsigned int num_rows, unsigned int num_cols,
              unsigned int num_sources, double regularizer,
+             double fov, const std::vector<Source2D>& sources,
+             const GridPose2D& initial_pose);
+  Explorer2D(unsigned int num_rows, unsigned int num_cols,
+             unsigned int num_sources, double regularizer,
              double fov);
   virtual ~Explorer2D();
 

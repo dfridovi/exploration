@@ -59,8 +59,20 @@
 
 namespace radiation {
 
-// Constructor/destructor.
+// Constructor/destructor. If no sources or initial pose provided,
+// generate a random initialization.
 Explorer2D::~Explorer2D() {}
+Explorer2D::Explorer2D(unsigned int num_rows, unsigned int num_cols,
+                       unsigned int num_sources, double regularizer,
+                       double fov, const std::vector<Source2D>& sources,
+                       const GridPose2D& initial_pose)
+  : map_(num_rows, num_cols, num_sources, regularizer),
+    fov_(fov),
+    sources_(sources),
+    pose_(initial_pose) {
+  CHECK(sources.size() == num_sources);
+}
+
 Explorer2D::Explorer2D(unsigned int num_rows, unsigned int num_cols,
                        unsigned int num_sources, double regularizer,
                        double fov)

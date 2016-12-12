@@ -57,6 +57,16 @@ ExplorerLP::~ExplorerLP() {}
 ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
                        unsigned int num_sources, double regularizer,
                        unsigned int num_steps, double fov,
+                       unsigned int num_samples,
+                       const std::vector<Source2D>& sources,
+                       const GridPose2D& initial_pose)
+  : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov,
+               sources, initial_pose),
+    num_steps_(num_steps),
+    num_samples_(num_samples) {}
+ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
+                       unsigned int num_sources, double regularizer,
+                       unsigned int num_steps, double fov,
                        unsigned int num_samples)
   : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov),
     num_steps_(num_steps),

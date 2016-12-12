@@ -54,6 +54,12 @@ namespace radiation {
 ExplorerRW::~ExplorerRW() {}
 ExplorerRW::ExplorerRW(unsigned int num_rows, unsigned int num_cols,
                        unsigned int num_sources, double regularizer,
+                       double fov, const std::vector<Source2D>& sources,
+                       const GridPose2D& initial_pose)
+  : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov,
+               sources, initial_pose) {}
+ExplorerRW::ExplorerRW(unsigned int num_rows, unsigned int num_cols,
+                       unsigned int num_sources, double regularizer,
                        double fov)
   : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov) {}
 

@@ -53,8 +53,10 @@
 #include <GL/glut.h>
 #endif
 
-DEFINE_string(output_file, "out.csv",
-              "Name of file to save results in. Column 1 is RW, 2 is LP.");
+DEFINE_string(rw_output_file, "rw_out.csv",
+              "Name of file to save random walk results in.");
+DEFINE_string(lp_output_file, "lp_out.csv",
+              "Name of file to save LP results in.");
 DEFINE_bool(verbose, false, "Output iteration number and final entropies.");
 DEFINE_int32(num_trials, 10000, "Number of random trials to run.");
 DEFINE_int32(num_iterations, 10, "Number of iterations to run exploration.");
@@ -78,10 +80,16 @@ int main(int argc, char** argv) {
   // Parse flags.
   google::ParseCommandLineFlags(&argc, &argv, true);
 
-  // Make sure we can open the output file.
-  std::ofstream file(FLAGS_output_file);
-  if (!file.is_open()) {
-    VLOG(1) << "Unable to open file " + FLAGS_output_file;
+  // Make sure we can open the output files.
+  std::ofstream rw_file(FLAGS_rw_output_file);
+  if (!rw_file.is_open()) {
+    VLOG(1) << "Unable to open file " + FLAGS_rw_output_file;
+    return 1;
+  }
+
+  std::ofstream lp_file(FLAGS_lp_output_file);
+  if (!lp_file.is_open()) {
+    VLOG(1) << "Unable to open file " + FLAGS_lp_output_file;
     return 1;
   }
 
@@ -90,41 +98,69 @@ int main(int argc, char** argv) {
   GridPose2D::SetNumCols(FLAGS_num_cols);
   Movement2D::SetAngularStep(FLAGS_angular_step);
 
+  // Set up a random number generator.
+  std::random_device rd;
+  std::default_random_engine rng(rd());
+  std::uniform_int_distribution<unsigned int> unif_rows(0, FLAGS_num_rows - 1);
+  std::uniform_int_distribution<unsigned int> unif_cols(0, FLAGS_num_cols - 1);
+  std::uniform_real_distribution<double> unif_angle(0.0, 2.0 * M_PI);
+
   // Only plan ahead if we haven't exceeded the step count.
   for (unsigned int ii = 0; ii < FLAGS_num_trials; ii++) {
+    // Create a random set of sources.
+    std::vector<Source2D> sources;
+    for (unsigned int jj = 0; jj < FLAGS_num_sources; jj++) {
+      const Source2D source(unif_rows(rng), unif_cols(rng));
+      sources.push_back(source);
+    }
+
+    // Create a random initial pose.
+    const GridPose2D initial_pose(unif_rows(rng), unif_cols(rng),
+                                  unif_angle(rng));
+
     // Set up explorers.
     ExplorerLP lp(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
                   FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
-                  FLAGS_num_samples);
+                  FLAGS_num_samples, sources, initial_pose);
     ExplorerRW rw(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
-                  FLAGS_regularizer, FLAGS_fov);
+                  FLAGS_regularizer, FLAGS_fov, sources, initial_pose);
 
+    // Write initial entropies to file (these will be the same).
     double rw_entropy = rw.Entropy();
+    rw_file << rw_entropy;
+
     double lp_entropy = lp.Entropy();
+    lp_file << lp_entropy;
 
     // Run for the specified number of steps.
+    std::vector<GridPose2D> lp_trajectory, rw_trajectory;
     for (unsigned int jj = 0; jj < FLAGS_num_iterations; jj++) {
       // Plan ahead.
-      std::vector<GridPose2D> lp_trajectory, rw_trajectory;
       CHECK(lp.PlanAhead(lp_trajectory));
       CHECK(rw.PlanAhead(rw_trajectory));
 
       // Take a step.
       lp_entropy = lp.TakeStep(lp_trajectory);
       rw_entropy = rw.TakeStep(rw_trajectory);
+
+      // Write to files.
+      rw_file << ", " << rw_entropy;
+      lp_file << ", " << lp_entropy;
     }
 
-    // Write to file.
-    file << rw_entropy << ", " << lp_entropy << "\n";
+    // Write newlines.
+    rw_file << "\n";
+    lp_file << "\n";
 
     // Maybe output to screen.
-    if (FLAGS_verbose) {
+    if (FLAGS_verbose && ii % 100 == 0) {
       std::cout << "Trial " << ii << ": RW = " << rw_entropy <<
         ", LP = " << lp_entropy << std::endl << std::flush;
     }
   }
 
-  // Close file.
-  file.close();
+  // Close files.
+  rw_file.close();
+  lp_file.close();
   return 0;
 }
