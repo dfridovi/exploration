@@ -58,7 +58,7 @@ DEFINE_string(rw_output_file, "rw_out.csv",
               "Name of file to save random walk results in.");
 DEFINE_string(lp_output_file, "lp_out.csv",
               "Name of file to save LP results in.");
-DEFINE_string(socp_output_file, "lp_out.csv",
+DEFINE_string(socp_output_file, "socp_out.csv",
               "Name of file to save SOCP results in.");
 DEFINE_bool(verbose, false, "Output iteration number and final entropies.");
 DEFINE_int32(num_trials, 1000, "Number of random trials to run.");
