@@ -40,6 +40,8 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
+#ifdef SYSTEM_OSX
+
 #include <grid_pose_2d.h>
 #include <explorer_socp.h>
 #include <explorer_rw.h>
@@ -102,3 +104,5 @@ TEST(ExplorerSOCP, TestVsRandomWalk) {
 }
 
 } // namespace radiation
+
+#endif

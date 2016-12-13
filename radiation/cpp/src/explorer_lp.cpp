@@ -45,7 +45,6 @@
 
 #include <explorer_lp.h>
 
-#include <gurobi_c++.h>
 #include <glog/logging.h>
 #include <random>
 #include <string>

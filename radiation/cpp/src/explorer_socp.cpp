@@ -45,7 +45,10 @@
 
 #include <explorer_socp.h>
 
+#ifdef SYSTEM_OSX
 #include <gurobi_c++.h>
+#endif
+
 #include <glog/logging.h>
 #include <random>
 #include <string>
@@ -78,6 +81,12 @@ ExplorerSOCP::ExplorerSOCP(unsigned int num_rows, unsigned int num_cols,
 
 // Plan a new trajectory.
 bool ExplorerSOCP::PlanAhead(std::vector<GridPose2D>& trajectory) {
+#ifdef SYSTEM_LINUX
+  VLOG(1) << "Your machine does not have Gurobi. Sorry.";
+  return false;
+#endif
+
+#ifdef SYSTEM_OSX
   // Use GUROBI to set up and solve a SOCP. Since GUROBI uses
   // exceptions to communicate errors, we enclose the entire planner in
   // a try/catch block.
@@ -154,6 +163,7 @@ bool ExplorerSOCP::PlanAhead(std::vector<GridPose2D>& trajectory) {
   }
 
   return false;
+#endif
 }
 
 } // namespace radiation
