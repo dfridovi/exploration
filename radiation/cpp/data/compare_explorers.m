@@ -27,11 +27,11 @@ end
 figure;
 hold on;
 grid on;
-errorbar(0:(num_iterations-1), lp_means, 1.0 * lp_stddevs, 'r*');
-errorbar(0:(num_iterations-1), rw_means, 1.0 * rw_stddevs, 'bo');
+errorbar((0:(num_iterations-1)) - 0.1, lp_means, 1.0 * lp_stddevs, 'r*');
+errorbar((0:(num_iterations-1)) + 0.1, rw_means, 1.0 * rw_stddevs, 'bo');
 xlim([-0.5, num_iterations-0.5]);
-set(gca, 'fontsize', 18);
+set(gca, 'fontsize', 24);
 legend('LP explorer', 'RW explorer');
 xlabel('Time step');
 ylabel('Entropy (nats)');
-title('Empirical Comparison of Information Maximization and a Random Walk');
+title(sprintf('Empirical Comparison of Information Maximization \n and a Random Walk'));

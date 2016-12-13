@@ -34,6 +34,7 @@
  * Authors: David Fridovich-Keil   ( dfk@eecs.berkeley.edu )
  */
 
+#include <explorer_socp.h>
 #include <explorer_lp.h>
 #include <explorer_rw.h>
 #include <movement_2d.h>
@@ -57,8 +58,10 @@ DEFINE_string(rw_output_file, "rw_out.csv",
               "Name of file to save random walk results in.");
 DEFINE_string(lp_output_file, "lp_out.csv",
               "Name of file to save LP results in.");
+DEFINE_string(socp_output_file, "lp_out.csv",
+              "Name of file to save SOCP results in.");
 DEFINE_bool(verbose, false, "Output iteration number and final entropies.");
-DEFINE_int32(num_trials, 10000, "Number of random trials to run.");
+DEFINE_int32(num_trials, 1000, "Number of random trials to run.");
 DEFINE_int32(num_iterations, 10, "Number of iterations to run exploration.");
 DEFINE_int32(num_rows, 5, "Number of rows in the grid.");
 DEFINE_int32(num_cols, 5, "Number of columns in the grid.");
@@ -69,6 +72,7 @@ DEFINE_int32(num_samples, 20000,
 DEFINE_double(angular_step, 0.07 * M_PI, "Angular step size.");
 DEFINE_double(fov, 0.1 * M_PI, "Sensor field of view.");
 DEFINE_double(regularizer, 1.0, "Regularization parameter for belief update.");
+DEFINE_double(epsilon, 0.1, "Noise ball radius for SOCP explorer.");
 
 using namespace radiation;
 
@@ -90,6 +94,12 @@ int main(int argc, char** argv) {
   std::ofstream lp_file(FLAGS_lp_output_file);
   if (!lp_file.is_open()) {
     VLOG(1) << "Unable to open file " + FLAGS_lp_output_file;
+    return 1;
+  }
+
+  std::ofstream socp_file(FLAGS_socp_output_file);
+  if (!socp_file.is_open()) {
+    VLOG(1) << "Unable to open file " + FLAGS_socp_output_file;
     return 1;
   }
 
@@ -119,11 +129,14 @@ int main(int argc, char** argv) {
                                   unif_angle(rng));
 
     // Set up explorers.
+    ExplorerRW rw(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
+                  FLAGS_regularizer, FLAGS_fov, sources, initial_pose);
     ExplorerLP lp(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
                   FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
                   FLAGS_num_samples, sources, initial_pose);
-    ExplorerRW rw(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
-                  FLAGS_regularizer, FLAGS_fov, sources, initial_pose);
+    ExplorerSOCP socp(FLAGS_num_rows, FLAGS_num_cols, FLAGS_num_sources,
+                      FLAGS_regularizer, FLAGS_num_steps, FLAGS_fov,
+                      FLAGS_num_samples, FLAGS_epsilon, sources, initial_pose);
 
     // Write initial entropies to file (these will be the same).
     double rw_entropy = rw.Entropy();
@@ -132,35 +145,44 @@ int main(int argc, char** argv) {
     double lp_entropy = lp.Entropy();
     lp_file << lp_entropy;
 
+    double socp_entropy = socp.Entropy();
+    socp_file << socp_entropy;
+
     // Run for the specified number of steps.
-    std::vector<GridPose2D> lp_trajectory, rw_trajectory;
+    std::vector<GridPose2D> lp_trajectory, rw_trajectory, socp_trajectory;
     for (unsigned int jj = 0; jj < FLAGS_num_iterations; jj++) {
       // Plan ahead.
       CHECK(lp.PlanAhead(lp_trajectory));
       CHECK(rw.PlanAhead(rw_trajectory));
+      CHECK(socp.PlanAhead(socp_trajectory));
 
       // Take a step.
       lp_entropy = lp.TakeStep(lp_trajectory);
       rw_entropy = rw.TakeStep(rw_trajectory);
+      socp_entropy = socp.TakeStep(socp_trajectory);
 
       // Write to files.
       rw_file << ", " << rw_entropy;
       lp_file << ", " << lp_entropy;
+      socp_file << ", " << socp_entropy;
     }
 
     // Write newlines.
     rw_file << "\n";
     lp_file << "\n";
+    socp_file << "\n";
 
     // Maybe output to screen.
     if (FLAGS_verbose && ii % 100 == 0) {
       std::cout << "Trial " << ii << ": RW = " << rw_entropy <<
-        ", LP = " << lp_entropy << std::endl << std::flush;
+        ", LP = " << lp_entropy << ", SOCP = " << socp_entropy <<
+        std::endl << std::flush;
     }
   }
 
   // Close files.
   rw_file.close();
   lp_file.close();
+  socp_file.close();
   return 0;
 }

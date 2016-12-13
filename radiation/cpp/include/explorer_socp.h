@@ -43,66 +43,39 @@
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <explorer_lp.h>
+#ifndef RADIATION_EXPLORER_SOCP_H
+#define RADIATION_EXPLORER_SOCP_H
 
-#include <gurobi_c++.h>
-#include <glog/logging.h>
-#include <random>
-#include <string>
-#include <math.h>
+#include <explorer_2d.h>
 
 namespace radiation {
 
-// Constructor/destructor.
-ExplorerLP::~ExplorerLP() {}
-ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
-                       unsigned int num_sources, double regularizer,
-                       unsigned int num_steps, double fov,
-                       unsigned int num_samples,
-                       const std::vector<Source2D>& sources,
-                       const GridPose2D& initial_pose)
-  : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov,
-               sources, initial_pose),
-    num_steps_(num_steps),
-    num_samples_(num_samples) {}
-ExplorerLP::ExplorerLP(unsigned int num_rows, unsigned int num_cols,
-                       unsigned int num_sources, double regularizer,
-                       unsigned int num_steps, double fov,
-                       unsigned int num_samples)
-  : Explorer2D(num_rows, num_cols, num_sources, regularizer, fov),
-    num_steps_(num_steps),
-    num_samples_(num_samples) {}
+class ExplorerSOCP : public Explorer2D {
+ public:
+  ExplorerSOCP(unsigned int num_rows, unsigned int num_cols,
+               unsigned int num_sources, double regularizer,
+               unsigned int num_steps, double fov, unsigned int num_samples,
+               double epsilon,
+               const std::vector<Source2D>& sources,
+               const GridPose2D& initial_pose);
+  ExplorerSOCP(unsigned int num_rows, unsigned int num_cols,
+               unsigned int num_sources, double regularizer,
+               unsigned int num_steps, double fov,
+               unsigned int num_samples, double epsilon);
+  ~ExplorerSOCP();
 
-// Plan a new trajectory.
-bool ExplorerLP::PlanAhead(std::vector<GridPose2D>& trajectory) {
-  // Generate conditional entropy vector.
-  Eigen::VectorXd hzx;
-  std::vector<unsigned int> trajectory_ids;
-  map_.GenerateEntropyVector(num_samples_, num_steps_, pose_, fov_,
-                             hzx, trajectory_ids);
-  CHECK(hzx.rows() == trajectory_ids.size());
+  // Plan a new trajectory. Implement the required pure virtual method.
+  bool PlanAhead(std::vector<GridPose2D>& trajectory);
 
-  // Compute the arg max of this conditional entropy vector.
-  double max_value = -1.0;
-  unsigned int trajectory_id = 0;
-  for (unsigned int ii = 0; ii < hzx.rows(); ii++) {
-    if (hzx(ii) > max_value) {
-      max_value = hzx(ii);
-      trajectory_id = trajectory_ids[ii];
-    }
-  }
-
-  // Check that we found a valid trajectory (with non-negative entropy).
-  if (max_value < 0.0) {
-    VLOG(1) << "Could not find a positive conditional entropy trajectory.";
-    return false;
-
-  }
-
-  // Decode this trajectory id.
-  trajectory.clear();
-  DecodeTrajectory(trajectory_id, num_steps_, pose_, trajectory);
-  return true;
-}
+ private:
+  // Extra problem parameters (the rest are in the virtual class).
+  // Epsilon is the regularization constant (or equivalently, the radius of
+  // the noise ball).
+  unsigned int num_steps_;
+  unsigned int num_samples_;
+  double epsilon_;
+ }; // class ExplorerLP
 
 } // namespace radiation
+
+#endif
