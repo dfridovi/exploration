@@ -31,9 +31,9 @@ end
 figure;
 hold on;
 grid on;
-errorbar((0:(num_iterations-1)), socp_means, 1.0 * socp_stddevs, 'kX');
-errorbar((0:(num_iterations-1)) - 0.1, lp_means, 1.0 * lp_stddevs, 'r*');
-errorbar((0:(num_iterations-1)) + 0.1, rw_means, 1.0 * rw_stddevs, 'bo');
+errorbar((0:(num_iterations-1)), socp_means, 1.0 * socp_stddevs, 'kX', 'MarkerSize', 10);
+errorbar((0:(num_iterations-1)) - 0.2, lp_means, 1.0 * lp_stddevs, 'r*', 'MarkerSize', 10);
+errorbar((0:(num_iterations-1)) + 0.2, rw_means, 1.0 * rw_stddevs, 'bo', 'MarkerSize', 10);
 xlim([-0.5, num_iterations-0.5]);
 set(gca, 'fontsize', 24);
 legend('SOCP explorer', 'LP explorer', 'RW explorer');
