@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     socp_file << "\n";
 
     // Maybe output to screen.
-    if (FLAGS_verbose && ii % 100 == 0) {
+    if (FLAGS_verbose && ii % 10 == 0) {
       std::cout << "Trial " << ii << ": RW = " << rw_entropy <<
         ", LP = " << lp_entropy << ", SOCP = " << socp_entropy <<
         std::endl << std::flush;
