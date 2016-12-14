@@ -1,7 +1,7 @@
 # exploration
 
 [![Build Status](https://travis-ci.org/dfridovi/exploration.svg?branch=master)](https://travis-ci.org/dfridovi/exploration)
-[![License](https://img.shields.io/badge/license-BSD-blue.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://github.com/dfridovi/exploration/blob/master/LICENSE)
 
 Simulations of autonomous robot navigation, using information-theoretic metrics. **exploration** is written primarily by [David Fridovich-Keil](http://people.eecs.berkeley.edu/~dfk/), a second-year PhD student in the [Berkeley Artificial Intelligence Research (BAIR) Lab](http://bair.berkeley.edu), with help from [Sang Min Han](http://people.eecs.berkeley.edu/~smhan/), a second-year PhD student in the [Berkeley Laboratory for Information and System Sciences (BLISS)](http://wifo.eecs.berkeley.edu). As you can tell, both of the authors really like acronyms :smiley:
 
