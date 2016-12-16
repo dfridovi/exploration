@@ -29,6 +29,7 @@ And for the C++ implementation:
 All of these may be installed very easily. If you run into any trouble, though, we are more than happy to help you figure out what's going on. Just post an [issue](https://github.com/dfridovi/exploration/issues) on this repository and we will reply as soon as possible.
 
 ## Usage
+
 ### Python implementation
 Begin by adding the directory `exploration/radiation/python/` to your PYTHONPATH, e.g. by appending the following line to your `~/.bashrc` (Linux) or `~/.bash_profile` (Mac) or (sorry, Windows):
 
