@@ -2,7 +2,7 @@ title: Exploration
 description: Simulations of autonomous robot navigation, using information-theoretic metrics.
 google_analytics: 
 show_downloads: true
-theme: jekyll-theme-cayman
+theme: jekyll-theme-midnight
 
 gems:
   - jekyll-mentions
