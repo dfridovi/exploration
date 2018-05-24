@@ -3,12 +3,10 @@
 [![Build Status](https://travis-ci.org/dfridovi/exploration.svg?branch=master)](https://travis-ci.org/dfridovi/exploration)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://github.com/dfridovi/exploration/blob/master/LICENSE)
 
-Simulations of autonomous robot navigation, using information-theoretic metrics. **exploration** is written primarily by [David Fridovich-Keil](http://people.eecs.berkeley.edu/~dfk/), a second-year PhD student in the [Berkeley Artificial Intelligence Research (BAIR) Lab](http://bair.berkeley.edu), with help from [Sang Min Han](http://people.eecs.berkeley.edu/~smhan/), a second-year PhD student in the [Berkeley Laboratory for Information and System Sciences (BLISS)](http://wifo.eecs.berkeley.edu). As you can tell, both of the authors really like acronyms :smiley:
-
-For a detailed description of this work, please review the document [here](http://people.eecs.berkeley.edu/~dfk/ee290s_writeup.pdf), which gives a brief overview of related work and presents some interesting theoretical results.
+Simulations of autonomous robot navigation, using information-theoretic metrics. For a detailed description of this work, please review the document [here](http://people.eecs.berkeley.edu/~dfk/pdfs/ee290s_writeup.pdf), which gives a brief overview of related work and presents some interesting theoretical results.
 
 ## Status
-Although we hope to build **exploration** into a full-fledged, generic information-maximization solver for applications in robotics, we have decided to begin by tackling a toy problem inspired by _radiation detection_. We are making rapid progress, and pushing new commits almost every day.
+Although we hope to build **exploration** into a full-fledged, generic information-maximization solver for applications in robotics, we have decided to begin by tackling a toy problem inspired by _radiation detection_. 
 
 ## Structure
 The _radiation detection_ problem is contained in the `radiation/` directory, and is subdivided into Python and C++ implementations. In the Python subdirectory (`radiation/python/`), the source code is readily visible, unit tests are located in the `radiation/python/test/` directory, and scripts are located in the `radiation/python/scripts/` directory. In the C++ implementation (`radiation/cpp/`), source code and header files are located in `radiation/cpp/src/` and `radiation/cpp/include/`, respectively. Unit tests are in `radiation/cpp/test/`, and executables are in `radiation/cpp/exec/`.
